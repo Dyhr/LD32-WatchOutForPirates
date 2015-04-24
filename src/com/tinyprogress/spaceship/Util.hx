@@ -22,31 +22,6 @@ class Util
 		return enemy;
 	}
 	
-	public static inline function buildBody(vertices:Array<Vec2>, type:BodyType):Body {
-		var body = new Body(type);
-		var polygon = new Polygon(vertices);
-		if(vertices.length > 0){
-			var center = Vec2.weak();
-			for (vertex in vertices) center = center.add(vertex, true);
-			center = center.mul(1/vertices.length, true);
-			polygon.localCOM = center;
-		}
-		body.shapes.add(polygon);
-		return body;
-	}
-	public static inline function buildShape(vertices:Array<Vec2>, color:Int, sprite:Sprite) {
-		var center = Vec2.weak();
-		for (vertex in vertices) center = center.add(vertex, true);
-		center = center.mul(1 / vertices.length);
-		
-		sprite.graphics.beginFill(color);
-		sprite.graphics.moveTo(vertices[vertices.length - 1].x, vertices[vertices.length - 1].y);
-		for (vertex in vertices) {
-			sprite.graphics.lineTo(vertex.x, vertex.y);
-		}
-		sprite.graphics.endFill();
-	}
-	
 	public static function spawnWave(main:Main, amount:Int) {
 		var pos = new Vec2(Math.random()-0.5, Math.random()-0.5).normalise().mul(1000, true).add(main.treasure.body.position);
 		

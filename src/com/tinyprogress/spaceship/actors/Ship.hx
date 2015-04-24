@@ -6,6 +6,7 @@ import nape.geom.Ray;
 import nape.geom.Vec2;
 import nape.phys.Body;
 import nape.phys.BodyType;
+import nape.shape.Polygon;
 import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.errors.ArgumentError;
@@ -52,11 +53,22 @@ class Ship extends Entity
 			new Vec2(0, width),
 			new Vec2(0, -width),
 		];
-		body.space = null;
-		body = Util.buildBody(verts, BodyType.DYNAMIC);
-		body.space = space;
 		
-		Util.buildShape(verts, color, sprite);
+		var polygon = new Polygon(verts);
+		if(verts.length > 0){
+			/*var center = Vec2.weak();
+			for (vertex in verts) center = center.add(vertex, true);
+			center = center.mul(1/verts.length, true);
+			polygon.localCOM = center;*/
+		}
+		body.shapes.add(polygon);
+		
+		sprite.graphics.beginFill(color);
+		sprite.graphics.moveTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
+		for (vertex in verts) {
+			sprite.graphics.lineTo(vertex.x, vertex.y);
+		}
+		sprite.graphics.endFill();
 		
 		Main.instance.ships.push(this);
 	}
