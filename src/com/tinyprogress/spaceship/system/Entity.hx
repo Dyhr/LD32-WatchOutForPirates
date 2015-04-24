@@ -32,7 +32,7 @@ class Entity
 	public function new(bodytype:BodyType, ?background:Bool = false, ?pos:Vec2 = null) 
 	{
 		Main.instance.entities.push(this);
-		this.parent = Main.instance;
+		this.parent = Main.instance.canvas;
 		this.space = Main.instance.space;
 		
 		body = new Body(bodytype, pos);

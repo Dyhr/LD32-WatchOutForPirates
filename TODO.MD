@@ -7,6 +7,6 @@ TODO LIST
 - Redo enemy grappling
 - Support more enemy types
 - Draw better receptacle
-- Stars! In the background!
++ Stars! In the background!
 - Particles
 - Improve tagger

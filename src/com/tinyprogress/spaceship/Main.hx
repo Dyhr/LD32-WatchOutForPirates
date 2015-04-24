@@ -1,6 +1,7 @@
 package com.tinyprogress.spaceship;
 
 import com.tinyprogress.spaceship.actors.Asteroid;
+import com.tinyprogress.spaceship.effects.Stars;
 import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
@@ -41,6 +42,7 @@ class Main extends Sprite
 	#end
 	public var space(default, null):Space;
 	public var entities(default, null):Array<Entity>;
+	public var canvas(default, null):Sprite;
 	
 	public var player:Ship;
 	public var enemy_goal:Map<Ship,Wormhole>;
@@ -48,6 +50,8 @@ class Main extends Sprite
 	public var goal:Wormhole;
 	public var ready:Bool;
 	public var numEnemies:Int;
+	
+	private var stars:Stars;
 
 	public function new() 
 	{
@@ -61,14 +65,10 @@ class Main extends Sprite
         }
 	}
 	
-	private function init(e:Event) {
-		#if debug
-		debug = new ShapeDebug(stage.stageWidth, stage.stageHeight, stage.color);
-		debug.drawConstraints = true;
-		debug.drawCollisionArbiters = true;
-        addChild(debug.display);
-		#end	
+	private function init(e:Event) {	
 		space = new Space(Vec2.weak(0, 0));
+		stars = cast(addChild(new Stars()));
+		canvas = cast(addChild(new Sprite()));
 		entities = [];
 		Input.init(stage);
 		
@@ -82,6 +82,12 @@ class Main extends Sprite
 		
 		stage.addEventListener(Input.KEYPRESS, keyPress);
 		stage.addEventListener(Event.ENTER_FRAME, update);
+		#if debug
+		debug = new ShapeDebug(stage.stageWidth, stage.stageHeight, stage.color);
+		debug.drawConstraints = true;
+		debug.drawCollisionArbiters = true;
+        canvas.addChild(debug.display);
+		#end
 	}
 	
 	private function setup() {
@@ -119,8 +125,8 @@ class Main extends Sprite
 				}
 			}
 			
-			x = -player.body.position.x + stage.stageWidth / 2;
-			y = -player.body.position.y + stage.stageHeight / 2;
+			canvas.x = -player.body.position.x + stage.stageWidth / 2;
+			canvas.y = -player.body.position.y + stage.stageHeight / 2;
 		});
 		
 		for (i in 0...65) {
@@ -196,8 +202,10 @@ class Main extends Sprite
 		
 		for (entity in entities) {
 			entity.update(1 / stage.frameRate);
-			entity.sprite.visible = stage_center.add(Vec2.weak(-x, -y), true).sub(entity.body.position, true).length < stage.stageWidth;
+			entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
 		}
+		
+		stars.update( -canvas.x, -canvas.y);
 		
 		// Everything below this line should be moved
 		
