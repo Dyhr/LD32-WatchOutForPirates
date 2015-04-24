@@ -1,6 +1,6 @@
 TODO LIST
 - Refractor classes
-- Fix ship physics
++ Fix ship physics
 - Better ship definitions
 - Actual rope physics
 - Redo enemy grappling

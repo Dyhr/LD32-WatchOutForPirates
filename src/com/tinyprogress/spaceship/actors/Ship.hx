@@ -39,6 +39,7 @@ class Ship extends Entity
 		}
 		var color = (ship_data.main_color.r << 16) | (ship_data.main_color.g << 8) | (ship_data.main_color.b << 0);
 		var width:Float = ship_data.width;
+		var widthnose:Float = ship_data.widthnose;
 		var length:Float = ship_data.length;
 		forward_force = ship_data.force.forward;
 		turn_force = ship_data.force.turn;
@@ -49,18 +50,21 @@ class Ship extends Entity
 		grapplers = new Map<DistanceJoint,Grapple>();
 		attached = [];
 		var verts:Array<Vec2> = [
-			new Vec2(length, 0),
+			new Vec2(length, -widthnose),
+			new Vec2(length, widthnose),
 			new Vec2(0, width),
 			new Vec2(0, -width),
 		];
+		var center = new Vec2();
+		if(verts.length > 0){
+			for (vertex in verts) center = center.add(vertex, true);
+			center = center.mul(1 / verts.length);
+		}
+		for (vert in verts) {
+			vert.set(vert.sub(center, true));
+		}
 		
 		var polygon = new Polygon(verts);
-		if(verts.length > 0){
-			/*var center = Vec2.weak();
-			for (vertex in verts) center = center.add(vertex, true);
-			center = center.mul(1/verts.length, true);
-			polygon.localCOM = center;*/
-		}
 		body.shapes.add(polygon);
 		
 		sprite.graphics.beginFill(color);
