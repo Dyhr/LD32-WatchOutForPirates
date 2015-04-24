@@ -194,7 +194,10 @@ class Main extends Sprite
 		var stage_center = new Vec2(stage.stageWidth / 2, stage.stageHeight / 2);
         space.step(1 / stage.frameRate);
 		
-		for (entity in entities) entity.update(1 / stage.frameRate);
+		for (entity in entities) {
+			entity.update(1 / stage.frameRate);
+			entity.sprite.visible = stage_center.add(Vec2.weak(-x, -y), true).sub(entity.body.position, true).length < stage.stageWidth;
+		}
 		
 		// Everything below this line should be moved
 		
