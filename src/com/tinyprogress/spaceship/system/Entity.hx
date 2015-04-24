@@ -19,9 +19,10 @@ class Entity
 	public var body(default, null):Body;
 	public var sprite(default, null):Sprite;
 	
+	public var updates:Array<Entity->Float->Void> = [];
+	
 	public var x(get, set):Float;
 	public var y(get, set):Float;
-	
 	private function get_x() return body.position.x;
 	private function get_y() return body.position.y;
 	private function set_x(x) return body.position.x = x;
@@ -49,5 +50,7 @@ class Entity
 		sprite.x = body.position.x;
 		sprite.y = body.position.y;
 		sprite.rotation = body.rotation * (180 / Math.PI);
+		
+		for (f in updates) f(this, dt);
 	}
 }

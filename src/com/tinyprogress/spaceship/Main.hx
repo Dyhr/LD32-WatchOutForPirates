@@ -97,6 +97,35 @@ class Main extends Sprite
 		player.body.position.x = 1700;
 		player.body.rotation = Math.PI;
 		
+		player.updates.push(function(entity:Entity, dt:Float) {
+			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
+			
+			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
+			
+			if (Input.keys[Keyboard.H] == 1 && player.grapples.length > 1) {
+				var bodies = [for (grapple in player.grapples) grapple.body2];
+				var center = Vec2.weak();
+				for (body in bodies) center = center.add(body.position, true);
+				center = center.mul(1 / bodies.length);
+				
+				for (body in bodies) {
+					var dir = center.sub(body.position);
+					if (dir.length == 0) continue;
+					body.applyImpulse(dir.normalise().mul(30, true));
+				}
+			}
+			
+			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
+			if (pull != 0) {
+				for (c in player.grapples) {
+					c.jointMax = Math.max(c.jointMax+pull,0);
+				}
+			}
+			
+			x = -player.body.position.x + stage.stageWidth / 2;
+			y = -player.body.position.y + stage.stageHeight / 2;
+		});
+		
 		for (i in 0...65) {
 			var asteroid = new Asteroid(30+20*Math.random());
 			asteroid.x = 2000 * Math.random();
@@ -118,7 +147,8 @@ class Main extends Sprite
 		}
 		treasure.sprite.graphics.endFill();
 		
-		goal = new Wormhole(100, 0x282888, Vec2.weak(2000,0));
+		goal = new Wormhole(100, 0x282888, Vec2.weak(2000, 0));
+		goal.updates.push(updatewormhole);
 		holes.push(goal);
 		
 		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
@@ -170,83 +200,9 @@ class Main extends Sprite
 		
 		// Everything below this line should be moved
 		
-		for (enemy in enemies) {
-			var d = enemy.body.position.sub(treasure.body.position);
-			var t = new Vec2(enemy.body.position.x - enemy_goal[enemy].x, enemy.body.position.y - enemy_goal[enemy].y);
-			var angle = switch(enemy.attached.indexOf(treasure.body) < 0) {
-			case true:
-				enemy.body.rotation - Math.atan2(d.y, d.x);
-			case false:
-				enemy.body.rotation - Math.atan2(t.y, t.x);
-			}
-			while (angle < -Math.PI) angle += Math.PI * 2;
-			while (angle >  Math.PI) angle -= Math.PI * 2;
-			
-			var on_track = Math.PI / 2 - Math.abs(angle) < Math.PI / 8;
-			enemy.move(angle, on_track ? 1 : 0);
-			if(on_track)
-				enemy.body.applyAngularImpulse(enemy.body.angularVel * 10 * (Math.PI / 8 - Math.abs(angle)));
-			if (enemy.attached.indexOf(treasure.body) < 0 && d.length < 200 && enemy.target() == treasure.body) {
-				enemy.shoot();
-			}
-		}
-		
 		if (numEnemies < 3 && ready) {
 			numEnemies += 5;
 			Actuate.timer(10).onComplete(function() { Util.spawnWave(this, 4); }, []);
-		}
-		
-		for (hole in holes) {
-			var reach = 200;
-			var d = new Vec2(hole.x - treasure.x, hole.y - treasure.y);
-			var distance = d.length - reach;
-			if (d.length < reach) {
-				treasure.body.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.body.velocity.mul(0.6, true),true));
-				if (d.length < 10) {
-					holes.remove(hole);
-					hole.dispose();
-					
-					for (s in ships) s.release();
-					treasure.dispose();
-					
-					if (hole == goal) {
-						stage.addChild(new End("GREAT PROFIT", true));
-					} else {
-						stage.addChild(new End("GREAT LOSS", true));
-					}
-					
-					ready = false;
-				}
-			}
-		}
-		
-		if (player.body.space != null) {
-			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
-			
-			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
-			
-			if (Input.keys[Keyboard.H] == 1 && player.grapples.length > 1) {
-				var bodies = [for (grapple in player.grapples) grapple.body2];
-				var center = Vec2.weak();
-				for (body in bodies) center = center.add(body.position, true);
-				center = center.mul(1 / bodies.length);
-				
-				for (body in bodies) {
-					var dir = center.sub(body.position);
-					if (dir.length == 0) continue;
-					body.applyImpulse(dir.normalise().mul(30, true));
-				}
-			}
-			
-			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
-			if (pull != 0) {
-				for (c in player.grapples) {
-					c.jointMax = Math.max(c.jointMax+pull,0);
-				}
-			}
-			
-			x = -player.body.position.x + stage.stageWidth / 2;
-			y = -player.body.position.y + stage.stageHeight / 2;
 		}
 		
 		#if debug
@@ -254,5 +210,30 @@ class Main extends Sprite
         debug.draw(space);
         debug.flush();
 		#end
+	}
+	
+	public function updatewormhole(entity:Entity, dt:Float) {
+		var hole = cast(entity, Wormhole);
+		var reach = 200;
+		var d = new Vec2(hole.x - treasure.x, hole.y - treasure.y);
+		var distance = d.length - reach;
+		if (d.length < reach) {
+			treasure.body.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.body.velocity.mul(0.6, true),true));
+			if (d.length < 10) {
+				holes.remove(hole);
+				hole.dispose();
+				
+				for (s in ships) s.release();
+				treasure.dispose();
+				
+				if (hole == goal) {
+					stage.addChild(new End("GREAT PROFIT", true));
+				} else {
+					stage.addChild(new End("GREAT LOSS", true));
+				}
+				
+				ready = false;
+			}
+		}
 	}
 }

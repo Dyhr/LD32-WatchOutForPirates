@@ -26,5 +26,5 @@ class Wormhole extends Entity
 		
 		sprite.scaleX = sprite.scaleY = 0;
 		Actuate.tween(sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(1);
-	}	
+	}
 }
