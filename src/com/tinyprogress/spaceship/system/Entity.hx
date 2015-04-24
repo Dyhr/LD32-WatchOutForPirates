@@ -20,6 +20,7 @@ class Entity
 	public var sprite(default, null):Sprite;
 	
 	public var updates:Array<Entity->Float->Void> = [];
+	public var tags:Array<String> = [];
 	
 	public var x(get, set):Float;
 	public var y(get, set):Float;
@@ -42,6 +43,7 @@ class Entity
 		Main.instance.entities.remove(this);
 		space.bodies.remove(body);
 		parent.removeChild(sprite);
+		Tagger.unset(this);
 	}
 	public function update(dt:Float) {
 		body.applyImpulse(body.velocity.mul(-0.01, true));

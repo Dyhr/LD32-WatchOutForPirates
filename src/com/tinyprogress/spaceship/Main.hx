@@ -5,6 +5,7 @@ import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
 import com.tinyprogress.spaceship.system.Input;
+import com.tinyprogress.spaceship.system.Tagger;
 import com.tinyprogress.spaceship.ui.End;
 import com.tinyprogress.spaceship.ui.TargetArrow;
 import motion.Actuate;
@@ -42,10 +43,7 @@ class Main extends Sprite
 	public var entities(default, null):Array<Entity>;
 	
 	public var player:Ship;
-	public var enemies:Array<Ship>;
 	public var enemy_goal:Map<Ship,Wormhole>;
-	public var ships:Array<Ship>;
-	public var holes:Array<Wormhole>;
 	public var treasure:Entity;
 	public var goal:Wormhole;
 	public var ready:Bool;
@@ -77,9 +75,6 @@ class Main extends Sprite
 		space.worldAngularDrag = 0.0;
 		space.worldLinearDrag = 0.0;
 		
-		enemies = [];
-		ships = [];
-		holes = [];
 		numEnemies = 0;
 		enemy_goal = new Map<Ship, Wormhole>();
 		
@@ -91,6 +86,8 @@ class Main extends Sprite
 	
 	private function setup() {
 		player = new Ship("player");
+		Tagger.set(player, "player");
+		
 		player.sprite.scaleX = player.sprite.scaleY = 0;
 		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(1.6);
 		
@@ -133,6 +130,7 @@ class Main extends Sprite
 		}
 		
 		treasure = new Asteroid(70);
+		Tagger.set(treasure, "treasure");
 		var m = treasure.body.mass;
 		treasure.body.massMode = MassMode.FIXED;
 		treasure.body.mass = m*6;
@@ -148,8 +146,8 @@ class Main extends Sprite
 		treasure.sprite.graphics.endFill();
 		
 		goal = new Wormhole(100, 0x282888, Vec2.weak(2000, 0));
+		Tagger.set(goal, "goal");
 		goal.updates.push(updatewormhole);
-		holes.push(goal);
 		
 		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
 		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));
@@ -220,10 +218,10 @@ class Main extends Sprite
 		if (d.length < reach) {
 			treasure.body.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.body.velocity.mul(0.6, true),true));
 			if (d.length < 10) {
-				holes.remove(hole);
 				hole.dispose();
 				
-				for (s in ships) s.release();
+				for (s in Tagger.get("enemy")) cast(s,Ship).release();
+				for (s in Tagger.get("player")) cast(s,Ship).release();
 				treasure.dispose();
 				
 				if (hole == goal) {

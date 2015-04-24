@@ -73,8 +73,6 @@ class Ship extends Entity
 			sprite.graphics.lineTo(vertex.x, vertex.y);
 		}
 		sprite.graphics.endFill();
-		
-		Main.instance.ships.push(this);
 	}
 	
 	public function move(x:Float, y:Float) {
@@ -97,14 +95,11 @@ class Ship extends Entity
 		
 		for (g in grapplers) g.update();
 		if (body.crushFactor() > death_force) {
-			if (Main.instance.enemies.indexOf(this) >= 0) {
-				Main.instance.enemies.remove(this);
+			if (tags.indexOf("enemy") >= 0) {
 				Main.instance.numEnemies--;
 			}
-			Util.release(body,Main.instance.ships);
 			release();
 			dispose();
-			Main.instance.ships.remove(this);
 		}
 	}
 	

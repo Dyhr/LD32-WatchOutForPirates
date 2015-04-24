@@ -3,6 +3,7 @@ import com.tinyprogress.spaceship.actors.Asteroid;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
 import com.tinyprogress.spaceship.system.Entity;
+import com.tinyprogress.spaceship.system.Tagger;
 import motion.Actuate;
 import nape.geom.Vec2;
 import nape.phys.Body;
@@ -19,7 +20,7 @@ class Util
 	public static inline function createEnemy(main:Main)
 	{
 		var enemy = new Ship("enemy_1");
-		main.enemies.push(enemy);
+		Tagger.set(enemy, "enemy");
 		enemy.updates.push(function(entity:Entity, dt:Float) {
 			var d = enemy.body.position.sub(main.treasure.body.position);
 			var t = new Vec2(enemy.body.position.x - main.enemy_goal[enemy].x, enemy.body.position.y - main.enemy_goal[enemy].y);
@@ -47,8 +48,8 @@ class Util
 		var pos = new Vec2(Math.random()-0.5, Math.random()-0.5).normalise().mul(1000, true).add(main.treasure.body.position);
 		
 		var goal = new Wormhole(100, 0x282848, pos);
+		Tagger.set(goal, "goal");
 		goal.updates.push(main.updatewormhole);
-		main.holes.push(goal);
 		
 		for (i in 0...amount) {
 			var enemy = Util.createEnemy(main);
