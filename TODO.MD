@@ -6,5 +6,5 @@ TODO LIST
 - Support more enemy types
 - Draw pretty ships
 - Draw better receptacle
-- Stars!
+- Stars! In the background!
 - Particles

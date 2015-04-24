@@ -4,6 +4,7 @@ import com.tinyprogress.spaceship.actors.Asteroid;
 import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
+import com.tinyprogress.spaceship.system.Input;
 import motion.Actuate;
 import motion.easing.Quad;
 import nape.constraint.DistanceJoint;
@@ -30,15 +31,12 @@ import nape.util.Debug;
 
 class Main extends Sprite 
 {
-	static public inline var KEYPRESS:String = "keypress";
-	
 	static public var instance:Main;
 	
 	#if debug
 	private var debug:Debug;
 	#end
 	public var space(default, null):Space;
-	public var keys(default, null):Array<Int>;
 	public var entities(default, null):Array<Entity>;
 	
 	public var player:Ship;
@@ -71,8 +69,11 @@ class Main extends Sprite
         addChild(debug.display);
 		#end	
 		space = new Space(Vec2.weak(0, 0));
-		keys = [ for (i in 0...1024) 0 ];
 		entities = [];
+		Input.init(stage);
+		
+		space.worldAngularDrag = 0.0;
+		space.worldLinearDrag = 0.0;
 		
 		enemies = [];
 		ships = [];
@@ -82,9 +83,7 @@ class Main extends Sprite
 		
 		setup();
 		
-		stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
-		stage.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-		stage.addEventListener(Main.KEYPRESS, keyPress);
+		stage.addEventListener(Input.KEYPRESS, keyPress);
 		stage.addEventListener(Event.ENTER_FRAME, update);
 	}
 	
@@ -127,7 +126,7 @@ class Main extends Sprite
 		stage.addChild(intro);
 		intro.y = -stage.stageHeight;
 		Actuate.tween(intro, 0.5, { y:stage.stageHeight/2 } ).ease(Quad.easeOut).onComplete(function(intro:End) {			
-			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(12).reflect().onComplete(function(intro:End) {				
+			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(9).reflect().onComplete(function(intro:End) {				
 				Actuate.tween(intro, 0.5, { y:-stage.stageHeight } ).ease(Quad.easeIn).onComplete(stage.removeChild, [intro]);
 			}, [intro]);
 		}, [intro]);
@@ -138,10 +137,10 @@ class Main extends Sprite
 	}
 	
 	private function destroy():Void {
-		stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDown);
-		stage.removeEventListener(KeyboardEvent.KEY_UP, keyUp);
-		stage.removeEventListener(Main.KEYPRESS, keyPress);
+		stage.removeEventListener(Input.KEYPRESS, keyPress);
 		stage.removeEventListener(Event.ENTER_FRAME, update);
+		
+		for (entity in entities) entity.dispose();
 		
 		space.clear();
 		
@@ -151,20 +150,6 @@ class Main extends Sprite
 	private function reset() {
 		destroy();
 		init(null);
-	}
-	
-	private function keyUp(e:KeyboardEvent):Void 
-	{
-		keys[e.keyCode] = 0;
-	}
-	
-	private function keyDown(e:KeyboardEvent):Void 
-	{
-		if (keys[e.keyCode] == 0) 
-			dispatchEvent(new KeyboardEvent(Main.KEYPRESS, true, true, 
-			e.charCode, e.keyCode, e.keyLocation, e.ctrlKey, 
-			e.altKey, e.shiftKey, e.controlKey, e.commandKey));
-		keys[e.keyCode] = 1;
 	}
 	
 	private function keyPress(e:KeyboardEvent):Void 
@@ -180,6 +165,8 @@ class Main extends Sprite
         space.step(1 / stage.frameRate);
 		
 		for (entity in entities) entity.update(1 / stage.frameRate);
+		
+		// Everything below this line should be moved
 		
 		for (enemy in enemies) {
 			var d = enemy.body.position.sub(treasure.body.position);
@@ -234,9 +221,9 @@ class Main extends Sprite
 		if (player.body.space != null) {
 			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
 			
-			player.move((keys[Keyboard.D] - keys[Keyboard.A]), (keys[Keyboard.W] - keys[Keyboard.S]));
+			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
 			
-			if (keys[Keyboard.H] == 1 && player.grapples.length > 1) {
+			if (Input.keys[Keyboard.H] == 1 && player.grapples.length > 1) {
 				var bodies = [for (grapple in player.grapples) grapple.body2];
 				var center = Vec2.weak();
 				for (body in bodies) center = center.add(body.position, true);
@@ -249,7 +236,7 @@ class Main extends Sprite
 				}
 			}
 			
-			var pull = (keys[Keyboard.I] - keys[Keyboard.K]) * 1.1;
+			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
 			if (pull != 0) {
 				for (c in player.grapples) {
 					c.jointMax = Math.max(c.jointMax+pull,0);
