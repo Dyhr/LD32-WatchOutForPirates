@@ -1,4 +1,7 @@
 package com.tinyprogress.spaceship;
+import com.tinyprogress.spaceship.actors.Asteroid;
+import com.tinyprogress.spaceship.actors.Ship;
+import com.tinyprogress.spaceship.actors.Wormhole;
 import motion.Actuate;
 import nape.geom.Vec2;
 import nape.phys.Body;
@@ -14,32 +17,9 @@ class Util
 {
 	public static inline function createEnemy(main:Main)
 	{
-		var enemy = new Ship("enemy_1", main);
+		var enemy = new Ship("enemy_1");
 		main.enemies.push(enemy);
 		return enemy;
-	}
-	
-	public static inline function createAsteroid(main:Main, radius:Float, random:Float = 0.2) {
-		var vertices = new Array<Vec2>();
-		
-		for (i in 0...8) {
-			var angle = i * ((Math.PI * 2) / 8);
-			vertices.push(new Vec2(Math.cos(angle) * radius, Math.sin(angle) * radius));
-		}
-		
-		var asteroid_body = buildBody(vertices, BodyType.DYNAMIC);
-		asteroid_body.space = main.space;
-		
-		var asteroid = new Sprite();
-		buildShape(vertices, 0x8844AA, asteroid);
-		main.addChild(asteroid);
-		asteroid.name = "Asteroid";
-		
-		asteroid.scaleX = asteroid.scaleY = 0;
-		Actuate.tween(asteroid, 0.8, { scaleX:1, scaleY:1 } ).delay(Math.random()*0.5);
-		
-		main.follow.set(asteroid, asteroid_body);
-		return asteroid_body;
 	}
 	
 	public static inline function buildBody(vertices:Array<Vec2>, type:BodyType):Body {
@@ -68,11 +48,9 @@ class Util
 	}
 	
 	public static function spawnWave(main:Main, amount:Int) {
-		var pos = new Vec2(Math.random()-0.5, Math.random()-0.5).normalise().mul(1000, true).add(main.treasure.position);
+		var pos = new Vec2(Math.random()-0.5, Math.random()-0.5).normalise().mul(1000, true).add(main.treasure.body.position);
 		
-		var goal = new Wormhole(100, 0x282848);
-		main.addChildAt(goal, 0);
-		goal.x = pos.x; goal.y = pos.y;
+		var goal = new Wormhole(100, 0x282848, pos);
 		main.holes.push(goal);
 		
 		for (i in 0...amount) {

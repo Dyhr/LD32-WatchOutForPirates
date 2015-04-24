@@ -16,23 +16,23 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="C:\Users\Rasmus\lime\openfl\3,0,2" />
-    <class path="C:\Users\Rasmus\lime\lime\2,3,2" />
+    <class path="C:\Users\Rasmus\lime\openfl\3,0,3" />
+    <class path="C:\Users\Rasmus\lime\lime\2,3,3" />
     <class path="C:\Users\Rasmus\lime\actuate\1,8,4" />
     <class path="C:\Users\Rasmus\lime\nape\2,0,16" />
     <class path="C:\Users\Rasmus\lime\yaml\1,2,0" />
     <class path="C:\Users\Rasmus\lime\svg\1,0,8" />
     <class path="src" />
-    <class path="bin\html5\haxe" />
+    <class path="bin\windows\cpp\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="openfl=3.0.2&#xA;lime=2.3.2&#xA;actuate=1.8.4&#xA;nape=2.0.16&#xA;yaml=1.2.0&#xA;svg=1.0.8&#xA;openfl-next&#xA;tools=2.3.2&#xA;no-compilation&#xA;openfl-html5&#xA;canvas&#xA;lime-html5&#xA;html5&#xA;web&#xA;html5" />
+    <option directives="openfl=3.0.3&#xA;lime=2.3.3&#xA;actuate=1.8.4&#xA;nape=2.0.16&#xA;yaml=1.2.0&#xA;svg=1.0.8&#xA;openfl-next&#xA;tools=2.3.3&#xA;no-compilation&#xA;native&#xA;lime-native&#xA;openfl-native&#xA;windows&#xA;desktop" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
     <option enabledebug="True" />
-    <option additional="--remap flash:openfl&#xA;--macro allowPackage(&quot;flash&quot;)" />
+    <option additional="--remap flash:openfl&#xA;#--macro keep(&quot;com.tinyprogress.spaceship.Main&quot;)&#xA;-debug " />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

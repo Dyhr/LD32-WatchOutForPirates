@@ -1,4 +1,6 @@
-package com.tinyprogress.spaceship;
+package com.tinyprogress.spaceship.actors;
+
+import com.tinyprogress.spaceship.system.Entity;
 import nape.constraint.DistanceJoint;
 import nape.geom.Ray;
 import nape.geom.Vec2;
@@ -16,10 +18,8 @@ import yaml.Yaml;
  * ...
  * @author Rasmus Dyhr Larsen
  */
-class Ship
+class Ship extends Entity
 {
-	public var body:Body;
-	public var sprite:Sprite;
 	public var grapples:Array<DistanceJoint>;
 	public var grapplers:Map<DistanceJoint,Grapple>;
 	public var attached:Array<Body>;
@@ -28,7 +28,8 @@ class Ship
 	public var max_grapples:Int;
 	public var death_force:Float;
 
-	public function new(type:String, main:Main) {
+	public function new(type:String) {
+		super(BodyType.DYNAMIC);
 		
 		var data = Yaml.parse(Assets.getText("data/ships.yaml"), Parser.options().useObjects());
 		var ship_data = Reflect.field(data, type);
@@ -51,15 +52,13 @@ class Ship
 			new Vec2(0, width),
 			new Vec2(0, -width),
 		];
+		body.space = null;
 		body = Util.buildBody(verts, BodyType.DYNAMIC);
-		body.space = main.space;
+		body.space = space;
 		
-		sprite = new Sprite();
 		Util.buildShape(verts, color, sprite);
-		main.addChild(sprite);
 		
-		main.ships.push(this);
-		main.follow.set(sprite, body);
+		Main.instance.ships.push(this);
 	}
 	
 	public function move(x:Float, y:Float) {
@@ -77,20 +76,19 @@ class Ship
 		}
 	}
 	
-	public function update(dt:Float, main:Main) {
-		if (body.space == null) return;
+	public override function update(dt:Float) {
+		super.update(dt);
+		
 		for (g in grapplers) g.update();
 		if (body.crushFactor() > death_force) {
-			if (main.enemies.indexOf(this) >= 0) {
-				main.enemies.remove(this);
-				main.numEnemies--;
+			if (Main.instance.enemies.indexOf(this) >= 0) {
+				Main.instance.enemies.remove(this);
+				Main.instance.numEnemies--;
 			}
-			Util.release(body,main.ships);
+			Util.release(body,Main.instance.ships);
 			release();
-			body.space = null;
-			main.follow.remove(sprite);
-			main.removeChild(sprite);
-			main.ships.remove(this);
+			dispose();
+			Main.instance.ships.remove(this);
 		}
 	}
 	

@@ -1,5 +1,9 @@
 package com.tinyprogress.spaceship;
 
+import com.tinyprogress.spaceship.actors.Asteroid;
+import com.tinyprogress.spaceship.system.Entity;
+import com.tinyprogress.spaceship.actors.Ship;
+import com.tinyprogress.spaceship.actors.Wormhole;
 import motion.Actuate;
 import motion.easing.Quad;
 import nape.constraint.DistanceJoint;
@@ -28,26 +32,29 @@ class Main extends Sprite
 {
 	static public inline var KEYPRESS:String = "keypress";
 	
+	static public var instance:Main;
+	
 	#if debug
 	private var debug:Debug;
 	#end
-	public var space:Space;
-	public var keys:Array<Int>;
-	public var follow:Map<Sprite,Body>;
+	public var space(default, null):Space;
+	public var keys(default, null):Array<Int>;
+	public var entities(default, null):Array<Entity>;
+	
 	public var player:Ship;
 	public var enemies:Array<Ship>;
 	public var enemy_goal:Map<Ship,Wormhole>;
 	public var ships:Array<Ship>;
 	public var holes:Array<Wormhole>;
-	public var treasure:Body;
+	public var treasure:Entity;
 	public var goal:Wormhole;
-	public var treasure_sprite:Sprite;
 	public var ready:Bool;
 	public var numEnemies:Int;
 
 	public function new() 
 	{
 		super();
+		instance = this;
 		
 		if (stage != null) {
             init(null);
@@ -65,11 +72,12 @@ class Main extends Sprite
 		#end	
 		space = new Space(Vec2.weak(0, 0));
 		keys = [ for (i in 0...1024) 0 ];
+		entities = [];
+		
 		enemies = [];
 		ships = [];
 		holes = [];
 		numEnemies = 0;
-		follow = new Map<Sprite, Body>();
 		enemy_goal = new Map<Ship, Wormhole>();
 		
 		setup();
@@ -81,42 +89,39 @@ class Main extends Sprite
 	}
 	
 	private function setup() {
-		player = new Ship("player", this);
+		player = new Ship("player");
 		player.sprite.scaleX = player.sprite.scaleY = 0;
-		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(2.5);
-		
-		treasure = Util.createAsteroid(this, 60);
-		var m = treasure.mass;
-		treasure.massMode = MassMode.FIXED;
-		treasure.mass = m*6;
-		var vertices = [for (i in 0...8) {
-			var angle = (i+0.5) * ((Math.PI * 2) / 8);
-			new Vec2(Math.cos(angle) * 30, Math.sin(angle) * 30);
-		}];
-		treasure_sprite = [for(k in follow.keys()) if(follow[k]==treasure) k][0];
-		Util.buildShape(vertices, 0xDDAA11, treasure_sprite);
-		treasure.position.x = stage.stageWidth / 2;
-		treasure.position.y = stage.stageHeight / 2;
-		
-		for (i in 0...65) {
-			var asteroid = Util.createAsteroid(this,30+20*Math.random());
-			asteroid.position.x = 2000 * Math.random();
-			asteroid.position.y = -1000+2000 * Math.random();
-		}
+		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(1.6);
 		
 		player.body.position.x = 1700;
 		player.body.rotation = Math.PI;
 		
-		goal = new Wormhole(100, 0x282888);
-		goal.scaleX = goal.scaleY = 0;
-		var goal_b = new Body(BodyType.STATIC, Vec2.weak(2000, 0));
-		addChildAt(goal, 0);
-		goal.x = 2000;
-		holes.push(goal);
-		Actuate.tween(goal, 0.5, { scaleX:1, scaleY:1 } ).delay(2);
+		for (i in 0...65) {
+			var asteroid = new Asteroid(30+20*Math.random());
+			asteroid.x = 2000 * Math.random();
+			asteroid.y = -1000 + 2000 * Math.random();
+		}
 		
-		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure));
-		stage.addChild(new TargetArrow(0x282888, player.body, goal_b));
+		treasure = new Asteroid(70);
+		var m = treasure.body.mass;
+		treasure.body.massMode = MassMode.FIXED;
+		treasure.body.mass = m*6;
+		var vertices = [for (i in 0...8) {
+			var angle = (i+0.5) * ((Math.PI * 2) / 8);
+			new Vec2(Math.cos(angle) * 30, Math.sin(angle) * 30);
+		}];
+		treasure.sprite.graphics.beginFill(0xDDAA11);
+		treasure.sprite.graphics.moveTo(vertices[vertices.length - 1].x, vertices[vertices.length - 1].y);
+		for (vertex in vertices) {
+			treasure.sprite.graphics.lineTo(vertex.x, vertex.y);
+		}
+		treasure.sprite.graphics.endFill();
+		
+		goal = new Wormhole(100, 0x282888, Vec2.weak(2000,0));
+		holes.push(goal);
+		
+		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
+		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));
 		
 		var intro = new End("WATCH OUT FOR PIRATES", false);
 		stage.addChild(intro);
@@ -126,6 +131,10 @@ class Main extends Sprite
 				Actuate.tween(intro, 0.5, { y:-stage.stageHeight } ).ease(Quad.easeIn).onComplete(stage.removeChild, [intro]);
 			}, [intro]);
 		}, [intro]);
+		
+		#if debug
+		trace("Game Started");
+		#end
 	}
 	
 	private function destroy():Void {
@@ -170,31 +179,12 @@ class Main extends Sprite
 		var stage_center = new Vec2(stage.stageWidth / 2, stage.stageHeight / 2);
         space.step(1 / stage.frameRate);
 		
-		for (ship in ships) {
-			ship.update(1 / stage.frameRate, this);
-		}
-		
-		for (key in follow.keys()) {
-			var sprite = key;
-			var body = follow[key];
-			follow[key].applyImpulse(follow[key].velocity.mul(-0.01, true));
-			follow[key].applyAngularImpulse(follow[key].angularVel * -4.1);
-			
-			key.visible = body.position.sub(stage_center.sub(Vec2.weak(x,y),true),true).length < stage.stageWidth;
-			if(key.visible){
-				key.x = follow[key].position.x;
-				key.y = follow[key].position.y;
-				key.rotation = follow[key].rotation * (180 / Math.PI);
-			} else { 
-				if(sprite.name == "Asteroid")
-					body.velocity.set(Vec2.weak());
-			}
-		}
+		for (entity in entities) entity.update(1 / stage.frameRate);
 		
 		for (enemy in enemies) {
-			var d = new Vec2(enemy.body.position.x - treasure.position.x, enemy.body.position.y - treasure.position.y);
+			var d = enemy.body.position.sub(treasure.body.position);
 			var t = new Vec2(enemy.body.position.x - enemy_goal[enemy].x, enemy.body.position.y - enemy_goal[enemy].y);
-			var angle = switch(enemy.attached.indexOf(treasure) < 0) {
+			var angle = switch(enemy.attached.indexOf(treasure.body) < 0) {
 			case true:
 				enemy.body.rotation - Math.atan2(d.y, d.x);
 			case false:
@@ -207,7 +197,7 @@ class Main extends Sprite
 			enemy.move(angle, on_track ? 1 : 0);
 			if(on_track)
 				enemy.body.applyAngularImpulse(enemy.body.angularVel * 10 * (Math.PI / 8 - Math.abs(angle)));
-			if (enemy.attached.indexOf(treasure) < 0 && d.length < 200 && enemy.target() == treasure) {
+			if (enemy.attached.indexOf(treasure.body) < 0 && d.length < 200 && enemy.target() == treasure.body) {
 				enemy.shoot();
 			}
 		}
@@ -219,18 +209,16 @@ class Main extends Sprite
 		
 		for (hole in holes) {
 			var reach = 200;
-			var d = new Vec2(hole.x - treasure.position.x, hole.y - treasure.position.y);
+			var d = new Vec2(hole.x - treasure.x, hole.y - treasure.y);
 			var distance = d.length - reach;
 			if (d.length < reach) {
-				treasure.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.velocity.mul(0.6, true),true));
+				treasure.body.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.body.velocity.mul(0.6, true),true));
 				if (d.length < 10) {
-					removeChild(hole);
 					holes.remove(hole);
+					hole.dispose();
 					
 					for (s in ships) s.release();
-					treasure.space = null;
-					follow.remove(treasure_sprite);
-					removeChild(treasure_sprite);
+					treasure.dispose();
 					
 					if (hole == goal) {
 						stage.addChild(new End("GREAT PROFIT", true));
@@ -244,7 +232,7 @@ class Main extends Sprite
 		}
 		
 		if (player.body.space != null) {
-			if (!ready && player.attached.indexOf(treasure) >= 0) ready = true;
+			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
 			
 			player.move((keys[Keyboard.D] - keys[Keyboard.A]), (keys[Keyboard.W] - keys[Keyboard.S]));
 			
