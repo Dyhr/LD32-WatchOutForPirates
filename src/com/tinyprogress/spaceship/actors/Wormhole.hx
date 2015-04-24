@@ -18,7 +18,7 @@ class Wormhole extends Entity
 
 	public function new(radius:Float, color:Int, pos:Vec2) 
 	{
-		super(BodyType.STATIC, pos);
+		super(BodyType.STATIC, true, pos);
 		
 		sprite.graphics.beginFill(color);
 		sprite.graphics.drawCircle(0,0,radius);

@@ -5,7 +5,6 @@ TODO LIST
 - Actual rope physics
 - Redo enemy grappling
 - Support more enemy types
-- Draw pretty ships
 - Draw better receptacle
 - Stars! In the background!
 - Particles

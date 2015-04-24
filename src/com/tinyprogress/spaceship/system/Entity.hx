@@ -29,7 +29,7 @@ class Entity
 	private function set_x(x) return body.position.x = x;
 	private function set_y(y) return body.position.y = y;
 	
-	public function new(bodytype:BodyType, ?pos:Vec2 = null) 
+	public function new(bodytype:BodyType, ?background:Bool = false, ?pos:Vec2 = null) 
 	{
 		Main.instance.entities.push(this);
 		this.parent = Main.instance;
@@ -37,7 +37,8 @@ class Entity
 		
 		body = new Body(bodytype, pos);
 		space.bodies.add(body);
-		sprite = cast(parent.addChild(new Sprite()));
+		if (!background) sprite = cast(parent.addChild(new Sprite()));
+		else sprite = cast(parent.addChildAt(new Sprite(), 0));
 	}
 	public function dispose() {
 		Main.instance.entities.remove(this);
