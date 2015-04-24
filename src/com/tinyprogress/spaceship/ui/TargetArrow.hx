@@ -1,4 +1,4 @@
-package com.tinyprogress.spaceship;
+package com.tinyprogress.spaceship.ui;
 
 import nape.geom.Vec2;
 import nape.phys.Body;

@@ -1,4 +1,4 @@
-package com.tinyprogress.spaceship;
+package com.tinyprogress.spaceship.ui;
 
 import motion.Actuate;
 import motion.easing.Quad;

@@ -5,6 +5,8 @@ import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
 import com.tinyprogress.spaceship.system.Input;
+import com.tinyprogress.spaceship.ui.End;
+import com.tinyprogress.spaceship.ui.TargetArrow;
 import motion.Actuate;
 import motion.easing.Quad;
 import nape.constraint.DistanceJoint;
