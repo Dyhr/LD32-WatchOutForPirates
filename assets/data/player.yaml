@@ -1,25 +1,32 @@
 --- 
-- polygon: 
-    color: 0x00FFFF
-    verts: 
-      - 
-        - 0.0
-        - length
-      - 
-        - 30.0
-        - 0.0
-      - 
-        - -30.0
-        - 0.0
-- polygon: 
-    color: 0xFF00FF
-    verts: 
-      - 
-        - 0.0
-        - length
-      - 
-        - -30.0
-        - 0.0
-      - 
-        - -60.0
-        - 0.0
+- 
+  color: 0x32cd32
+  solid: true
+  verts: 
+    - 
+      - length
+      - nwid_n
+    - 
+      - length
+      - nwid
+    - 
+      - 0.0
+      - wid
+    - 
+      - 0.0
+      - wid_n
+- 
+  color: 0x12ad12
+  verts: 
+    - 
+      - wid_n
+      - nwid_n
+    - 
+      - wid_n
+      - nwid
+    - 
+      - 0.0
+      - wid
+    - 
+      - 0.0
+      - wid_n

@@ -1,6 +1,7 @@
 package com.tinyprogress.spaceship.actors;
 
 import com.tinyprogress.spaceship.system.Entity;
+import com.tinyprogress.spaceship.system.ShipBuilder;
 import nape.constraint.DistanceJoint;
 import nape.geom.Ray;
 import nape.geom.Vec2;
@@ -32,12 +33,12 @@ class Ship extends Entity
 	public function new(type:String) {
 		super(BodyType.DYNAMIC);
 		
+		var builder = new ShipBuilder();
 		var data = Yaml.parse(Assets.getText("data/ships.yaml"), Parser.options().useObjects());
 		var ship_data = Reflect.field(data, type);
 		if (ship_data == null) {
 			throw new ArgumentError("Ship type not found: "+type);
 		}
-		var color = (ship_data.main_color.r << 16) | (ship_data.main_color.g << 8) | (ship_data.main_color.b << 0);
 		var width:Float = ship_data.width;
 		var widthnose:Float = ship_data.widthnose;
 		var length:Float = ship_data.length;
@@ -49,30 +50,12 @@ class Ship extends Entity
 		grapples = [];
 		grapplers = new Map<DistanceJoint,Grapple>();
 		attached = [];
-		var verts:Array<Vec2> = [
-			new Vec2(length, -widthnose),
-			new Vec2(length, widthnose),
-			new Vec2(0, width),
-			new Vec2(0, -width),
-		];
-		var center = new Vec2();
-		if(verts.length > 0){
-			for (vertex in verts) center = center.add(vertex, true);
-			center = center.mul(1 / verts.length);
-		}
-		for (vert in verts) {
-			vert.set(vert.sub(center, true));
-		}
+		var template = builder.convert(Assets.getText("data/player.yaml"));
+		var map = ["length"=>length, "wid"=>width, "nwid"=>widthnose];
+		var verts:Array<Array<Vec2>> = builder.vertices(template, map);
 		
-		var polygon = new Polygon(verts);
-		body.shapes.add(polygon);
-		
-		sprite.graphics.beginFill(color);
-		sprite.graphics.moveTo(verts[verts.length - 1].x, verts[verts.length - 1].y);
-		for (vertex in verts) {
-			sprite.graphics.lineTo(vertex.x, vertex.y);
-		}
-		sprite.graphics.endFill();
+		builder.solidify(body, template, map);
+		builder.build(sprite, template, map);
 	}
 	
 	public function move(x:Float, y:Float) {
