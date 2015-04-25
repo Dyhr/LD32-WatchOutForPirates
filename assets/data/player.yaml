@@ -1,0 +1,25 @@
+--- 
+- polygon: 
+    color: 0x00FFFF
+    verts: 
+      - 
+        - 0.0
+        - length
+      - 
+        - 30.0
+        - 0.0
+      - 
+        - -30.0
+        - 0.0
+- polygon: 
+    color: 0xFF00FF
+    verts: 
+      - 
+        - 0.0
+        - length
+      - 
+        - -30.0
+        - 0.0
+      - 
+        - -60.0
+        - 0.0

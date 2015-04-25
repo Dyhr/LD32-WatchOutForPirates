@@ -1,7 +1,9 @@
 TODO LIST
 - Refractor classes
 + Fix ship physics
+- Better grappling
 - Optimize
+- Magnetization effects
 - Better ship definitions
 - Actual rope physics
 - Redo enemy grappling
