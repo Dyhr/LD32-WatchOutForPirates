@@ -95,7 +95,7 @@ class Ship extends Entity
 	public function shoot() {
 		if (body.space == null) return;
 		if (0 < max_grapples) {
-			var grapple = new Grapple(this,new Vec2());
+			var grapple = new Grapple(this,new Vec2(60,0));
 		}
 	}
 	

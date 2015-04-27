@@ -1,5 +1,6 @@
 package com.tinyprogress.spaceship.system;
 
+import nape.callbacks.CbType;
 import nape.geom.Vec2;
 import nape.phys.Body;
 import nape.phys.BodyType;
@@ -13,6 +14,8 @@ import openfl.display.Sprite;
  */
 class Entity
 {
+	public static var cb:CbType = new CbType();
+	
 	public var parent(default, null):DisplayObjectContainer;
 	public var space(default, null):Space;
 
@@ -21,6 +24,7 @@ class Entity
 	
 	public var updates:Array<Entity->Float->Void> = [];
 	public var tags:Array<String> = [];
+	private var drag:Bool;
 	
 	public var x(get, set):Float;
 	public var y(get, set):Float;
@@ -29,26 +33,31 @@ class Entity
 	private function set_x(x) return body.position.x = x;
 	private function set_y(y) return body.position.y = y;
 	
-	public function new(bodytype:BodyType, ?background:Bool = false, ?pos:Vec2 = null) 
+	public function new(bodytype:BodyType, ?background:Bool = false, ?pos:Vec2 = null, ?drag:Bool = true) 
 	{
 		Main.instance.entities.push(this);
 		this.parent = Main.instance.canvas;
 		this.space = Main.instance.space;
+		this.drag = drag;
 		
 		body = new Body(bodytype, pos);
 		space.bodies.add(body);
+		body.cbTypes.add(cb);
 		if (!background) sprite = cast(parent.addChild(new Sprite()));
 		else sprite = cast(parent.addChildAt(new Sprite(), 0));
 	}
 	public function dispose() {
 		Main.instance.entities.remove(this);
+		body.cbTypes.remove(cb);
 		space.bodies.remove(body);
 		parent.removeChild(sprite);
 		Tagger.unset(this);
 	}
 	public function update(dt:Float) {
-		body.applyImpulse(body.velocity.mul(-0.01, true));
-		body.applyAngularImpulse(body.angularVel * -4.1);
+		if(drag){
+			body.applyImpulse(body.velocity.mul(-0.01, true));
+			body.applyAngularImpulse(body.angularVel * -4.1);
+		}
 		
 		sprite.x = body.position.x;
 		sprite.y = body.position.y;

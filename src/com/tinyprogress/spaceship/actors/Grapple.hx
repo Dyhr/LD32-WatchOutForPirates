@@ -1,13 +1,18 @@
 package com.tinyprogress.spaceship.actors;
 
 import com.tinyprogress.spaceship.system.Entity;
+import nape.callbacks.CbEvent;
+import nape.callbacks.CbType;
+import nape.callbacks.InteractionCallback;
+import nape.callbacks.InteractionListener;
+import nape.callbacks.InteractionType;
 import nape.constraint.DistanceJoint;
-import nape.geom.Ray;
+import nape.constraint.WeldJoint;
 import nape.geom.Vec2;
 import nape.phys.Body;
 import nape.phys.BodyType;
+import nape.shape.Circle;
 import openfl.display.Sprite;
-import openfl.events.Event;
 
 /**
  * ...
@@ -24,11 +29,25 @@ class Grapple extends Entity
 	private var head:Sprite;
 	private var tail:Sprite;
 
+	private var grappleCollitionType:CbType = new CbType();
+	private var listener:InteractionListener;
+	
 	public function new(parent:Entity, offset:Vec2) 
 	{
-		super(BodyType.STATIC,false,parent.body.position.add(offset,true));
-		/*
-		var dir = new Vec2(Math.cos(body.rotation), Math.sin(body.rotation));
+		super(BodyType.DYNAMIC, false, parent.body.position.add(parent.body.localVectorToWorld(offset, true), true), false);
+		
+		body.shapes.add(new Circle(4));
+		sprite.graphics.lineStyle(2, 0xFFFFFFFF);
+		sprite.graphics.drawCircle(0, 0, 4);
+		
+		var dir = new Vec2(Math.cos(parent.body.rotation), Math.sin(parent.body.rotation));
+		body.applyImpulse(dir.normalise().mul(20));
+		
+		listener = new InteractionListener(CbEvent.BEGIN, InteractionType.COLLISION, grappleCollitionType, Entity.cb, hit);
+		listener.space = body.space;
+		body.cbTypes.add(grappleCollitionType);
+		
+		/*var dir = new Vec2(Math.cos(body.rotation), Math.sin(body.rotation));
 		var ray = new Ray(body.position.add(dir, true), dir);
 		var hit = parent.body.space.rayCast(ray);
 		if (hit != null) {
@@ -60,11 +79,18 @@ class Grapple extends Entity
 		tail.graphics.endFill();
 	}
 	
+	private function hit(e:InteractionCallback):Void 
+	{
+		listener.space = null;
+		var joint = new WeldJoint(cast(e.int1), cast(e.int2), Vec2.weak(0, 0), Vec2.weak(0, 0));
+		joint.space = body.space;
+	}
+	
 	public override function dispose():Void 
 	{
 		super.dispose();
-		head.parent.removeChild(head);
-		tail.parent.removeChild(tail);
+		if(head != null)head.parent.removeChild(head);
+		if(tail != null)tail.parent.removeChild(tail);
 		if(joint != null)joint.space = null;
 	}
 	
