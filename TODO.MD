@@ -1,11 +1,11 @@
 TODO LIST
-- Refractor classes
++ Refractor classes
 + Fix ship physics
 - Better grappling
 - More intelligent enemy placement
 - Optimize
 - Magnetization effects
-- Better ship definitions
++ Better ship definitions
 - Actual rope physics
 - Redo enemy grappling
 - Support more enemy types
