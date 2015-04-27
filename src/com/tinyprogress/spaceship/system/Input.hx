@@ -17,8 +17,9 @@ class Input
 	public static var keys(default, null):Vector<Int> = [ for (i in 0...1024) 0 ];
 
 	public static function init(dispatcher:IEventDispatcher) {
-		if (dispatcher != null) dispose();
+		if (Input.dispatcher != null) dispose();
 		Input.dispatcher = dispatcher;
+		keys = [ for (i in 0...1024) 0 ];
 		
 		dispatcher.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		dispatcher.addEventListener(KeyboardEvent.KEY_UP, keyUp);

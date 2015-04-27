@@ -77,6 +77,7 @@ class Main extends Sprite
 		
 		setup();
 		
+		stage.focus = stage;
 		stage.addEventListener(Input.KEYPRESS, keyPress);
 		stage.addEventListener(Event.ENTER_FRAME, update);
 		#if debug
