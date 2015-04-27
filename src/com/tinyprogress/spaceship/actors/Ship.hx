@@ -22,9 +22,7 @@ import yaml.Yaml;
  */
 class Ship extends Entity
 {
-	public var grapples:Array<DistanceJoint>;
-	public var grapplers:Map<DistanceJoint,Grapple>;
-	public var attached:Array<Body>;
+	public var grapplers:Map<Entity, Grapple>;
 	public var forward_force:Float;
 	public var turn_force:Float;
 	public var max_grapples:Int;
@@ -47,9 +45,7 @@ class Ship extends Entity
 		max_grapples = ship_data.grapples;
 		death_force = ship_data.death;
 		
-		grapples = [];
-		grapplers = new Map<DistanceJoint,Grapple>();
-		attached = [];
+		grapplers = new Map<Entity,Grapple>();
 		var template = builder.convert(Assets.getText("data/player.yaml"));
 		var map = ["length"=>length, "wid"=>width, "nwid"=>widthnose];
 		var verts:Array<Array<Vec2>> = builder.vertices(template, map);
@@ -76,38 +72,30 @@ class Ship extends Entity
 	public override function update(dt:Float) {
 		super.update(dt);
 		
-		for (g in grapplers) g.update();
 		if (body.crushFactor() > death_force) {
 			if (tags.indexOf("enemy") >= 0) {
 				Main.instance.numEnemies--;
 			}
-			release();
 			dispose();
 		}
 	}
 	
+	public override function dispose() {
+		release();
+		super.dispose();
+	}
+	
 	public function release() {
 		if (body.space == null) return;
-		while (grapples.length > 0) {
-			var c = grapples.pop();
-			c.space = null;	
-			sprite.parent.removeChild(grapplers[c]);
-			grapplers.remove(c);
-			attached.pop();
+		for (grapple in grapplers) {
+			grapple.dispose();
 		}
 	}
 	
 	public function shoot() {
 		if (body.space == null) return;
-		if(grapples.length < max_grapples){
-			var dir = new Vec2(Math.cos(body.rotation), Math.sin(body.rotation));
-			var ray = new Ray(body.position.add(dir, true), dir);
-			var hit = body.space.rayCast(ray);
-			if (hit != null) {
-				grapple(hit.shape.body, body, ray.at(hit.distance));
-				attached.push(hit.shape.body);
-				hit.dispose();
-			}
+		if (0 < max_grapples) {
+			var grapple = new Grapple(this,new Vec2());
 		}
 	}
 	
@@ -122,16 +110,5 @@ class Ship extends Entity
 			return t;
 		}
 		return null;
-	}
-	
-	private function grapple(grappler:Body, graplee:Body, point:Vec2) {
-		if (body.space == null) return;
-		if (grappler == graplee) return;
-		var constraint = new DistanceJoint(graplee, grappler, Vec2.weak(0, 0), grappler.worldPointToLocal(point, true), 0, Vec2.distance(graplee.position, point));
-		constraint.space = body.space;
-		var grappl = new Grapple(graplee, grappler, new Vec2(0, 0), grappler.worldPointToLocal(point)); 
-		sprite.parent.addChild(grappl);
-		grapples.push(constraint);
-		grapplers.set(constraint, grappl);
 	}
 }

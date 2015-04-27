@@ -22,7 +22,7 @@ class Util
 		var enemy = new Ship("enemy_1");
 		Tagger.set(enemy, "enemy");
 		enemy.updates.push(function(entity:Entity, dt:Float) {
-			var d = enemy.body.position.sub(main.treasure.body.position);
+			/*var d = enemy.body.position.sub(main.treasure.body.position);
 			var t = new Vec2(enemy.body.position.x - main.enemy_goal[enemy].x, enemy.body.position.y - main.enemy_goal[enemy].y);
 			var angle = switch(enemy.attached.indexOf(main.treasure.body) < 0) {
 			case true:
@@ -39,7 +39,7 @@ class Util
 				enemy.body.applyAngularImpulse(enemy.body.angularVel * 10 * (Math.PI / 8 - Math.abs(angle)));
 			if (enemy.attached.indexOf(main.treasure.body) < 0 && d.length < 200 && enemy.target() == main.treasure.body) {
 				enemy.shoot();
-			}
+			}*/
 		});
 		return enemy;
 	}
@@ -62,7 +62,7 @@ class Util
 	
 	public static function release(body:Body, ships:Array<Ship>) 
 	{
-		for (ship in ships) {
+		/*for (ship in ships) {
 			for (joint in ship.grapples) {
 				if (joint.body1 == body || joint.body2 == body) {
 					joint.space = null;
@@ -73,6 +73,6 @@ class Util
 					if(ship.attached.indexOf(joint.body2)>=0)ship.attached.remove(joint.body2);
 				}
 			}
-		}
+		}*/
 	}
 }

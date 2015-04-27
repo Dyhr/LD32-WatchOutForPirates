@@ -98,11 +98,11 @@ class Main extends Sprite
 		player.body.rotation = Math.PI;
 		
 		player.updates.push(function(entity:Entity, dt:Float) {
-			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
+			//if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
 			
 			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
 			
-			if (Input.keys[Keyboard.H] == 1 && player.grapples.length > 1) {
+			/*if (Input.keys[Keyboard.H] == 1 && player.grapples.length > 1) {
 				var bodies = [for (grapple in player.grapples) grapple.body2];
 				var center = Vec2.weak();
 				for (body in bodies) center = center.add(body.position, true);
@@ -113,13 +113,13 @@ class Main extends Sprite
 					if (dir.length == 0) continue;
 					body.applyImpulse(dir.normalise().mul(30, true));
 				}
-			}
+			}*/
 			
 			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
 			if (pull != 0) {
-				for (c in player.grapples) {
-					c.jointMax = Math.max(c.jointMax+pull,0);
-				}
+				/*for (c in player.grapplers) {
+					//c.jointMax = Math.max(c.jointMax+pull,0);
+				}*/
 			}
 			
 			canvas.x = -player.body.position.x + stage.stageWidth / 2;
@@ -204,18 +204,18 @@ class Main extends Sprite
 		
 		stars.update( -canvas.x, -canvas.y);
 		
+		#if debug
+        debug.clear();
+        debug.draw(space);
+        debug.flush();
+		#end
+		
 		// Everything below this line should be moved
 		
 		if (numEnemies < 3 && ready) {
 			numEnemies += 5;
 			Actuate.timer(10).onComplete(function() { Util.spawnWave(this, 4); }, []);
 		}
-		
-		#if debug
-        debug.clear();
-        debug.draw(space);
-        debug.flush();
-		#end
 	}
 	
 	public function updatewormhole(entity:Entity, dt:Float) {
