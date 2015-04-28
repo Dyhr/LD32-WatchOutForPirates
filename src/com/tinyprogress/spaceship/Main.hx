@@ -16,15 +16,22 @@ import nape.geom.Vec2;
 import nape.phys.MassMode;
 import nape.space.Space;
 import openfl.Assets;
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.PixelSnapping;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
+import openfl.geom.Matrix;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
 import openfl.Lib;
 import openfl.ui.Keyboard;
 #if debug
 import nape.util.ShapeDebug;
 import nape.util.Debug;
 #end
+import openfl.Vector;
 
 /**
  * ...
@@ -40,7 +47,7 @@ class Main extends Sprite
 	#end
 	public var space(default, null):Space;
 	public var entities(default, null):Array<Entity>;
-	public var canvas(default, null):Sprite;
+	public var canvas_old(default, null):Sprite;
 	
 	public var player:Ship;
 	public var enemy_goal:Map<Ship,Wormhole>;
@@ -49,6 +56,8 @@ class Main extends Sprite
 	public var ready:Bool;
 	public var numEnemies:Int;
 	
+	private var canvas:Bitmap;
+	private var canvasdata:BitmapData;
 	private var pre_time:Float;
 	private var accum:Float;
 	private var stars:Stars;
@@ -63,12 +72,19 @@ class Main extends Sprite
         } else {
             addEventListener(Event.ADDED_TO_STAGE, init);
         }
+		addEventListener(Event.RESIZE, function(e:Event) {
+			canvasdata = new BitmapData(stage.stageWidth, stage.stageHeight, false, stage.color);
+			canvas.bitmapData = canvasdata;
+		});
 	}
 	
 	private function init(e:Event) {	
 		space = new Space(Vec2.weak(0, 0));
 		stars = cast(addChild(new Stars()));
-		canvas = cast(addChild(new Sprite()));
+		canvas_old = cast(addChild(new Sprite()));
+		canvasdata = new BitmapData(stage.stageWidth, stage.stageHeight, false, stage.color);
+		canvas = new Bitmap(canvasdata, PixelSnapping.NEVER, true);
+		addChild(canvas);
 		entities = [];
 		Input.init(stage);
 		
@@ -89,7 +105,7 @@ class Main extends Sprite
 		debug = new ShapeDebug(stage.stageWidth, stage.stageHeight, stage.color);
 		debug.drawConstraints = true;
 		debug.drawCollisionArbiters = true;
-        canvas.addChild(debug.display);
+        canvas_old.addChild(debug.display);
 		#end
 	}
 	
@@ -128,8 +144,8 @@ class Main extends Sprite
 				}*/
 			}
 			
-			canvas.x = -player.body.position.x + stage.stageWidth / 2;
-			canvas.y = -player.body.position.y + stage.stageHeight / 2;
+			canvas_old.x = -player.body.position.x + stage.stageWidth / 2;
+			canvas_old.y = -player.body.position.y + stage.stageHeight / 2;
 		});
 		
 		for (i in 0...65) {
@@ -212,11 +228,12 @@ class Main extends Sprite
 			space.step(1 / stage.frameRate);
 			for (entity in entities) {
 				entity.update(1 / stage.frameRate);
-				entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
+				//entity.sprite.visible = stage_center.add(Vec2.weak(-canvas_old.x, -canvas_old.y), true).sub(entity.body.position, true).length < stage.stageWidth;
 			}
 		}
 		
-		stars.update( -canvas.x, -canvas.y);
+		stars.update( -canvas_old.x, -canvas_old.y);
+		render();
 		
 		#if debug
         debug.clear();
@@ -230,6 +247,26 @@ class Main extends Sprite
 			numEnemies += 5;
 			Actuate.timer(10).onComplete(function() { Util.spawnWave(this, 4); }, []);
 		}
+	}
+	
+	public inline function render() {
+		var stage_center = new Vec2(stage.stageWidth / 2, stage.stageHeight / 2);
+		
+		canvasdata = new BitmapData(stage.stageWidth, stage.stageHeight, false, stage.color);
+		canvas.bitmapData = canvasdata;
+		canvasdata.lock();
+		
+		//if (Math.random() < 0.5) return;
+		for (entity in entities) {
+			if(stage_center.add(Vec2.weak(-canvas_old.x, -canvas_old.y), true).sub(entity.body.position, true).length < stage.stageWidth){
+				var matrix = new Matrix();
+				matrix.rotate(entity.body.rotation);
+				matrix.translate(entity.body.position.x, entity.body.position.y);
+				matrix.translate(canvas_old.x, canvas_old.y);
+				canvasdata.draw(entity.sprite, matrix, null, null, null, false);
+			}
+		}
+		canvasdata.unlock();
 	}
 	
 	public function updatewormhole(entity:Entity, dt:Float) {

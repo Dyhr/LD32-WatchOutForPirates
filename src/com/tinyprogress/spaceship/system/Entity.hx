@@ -36,15 +36,16 @@ class Entity
 	public function new(bodytype:BodyType, ?background:Bool = false, ?pos:Vec2 = null, ?drag:Bool = true) 
 	{
 		Main.instance.entities.push(this);
-		this.parent = Main.instance.canvas;
+		this.parent = Main.instance.canvas_old;
 		this.space = Main.instance.space;
 		this.drag = drag;
 		
 		body = new Body(bodytype, pos);
 		space.bodies.add(body);
 		body.cbTypes.add(cb);
-		if (!background) sprite = cast(parent.addChild(new Sprite()));
-		else sprite = cast(parent.addChildAt(new Sprite(), 0));
+		//if (!background) sprite = cast(parent.addChild(new Sprite()));
+		//else sprite = cast(parent.addChildAt(new Sprite(), 0));
+		sprite = new Sprite();
 	}
 	public function dispose() {
 		Main.instance.entities.remove(this);
