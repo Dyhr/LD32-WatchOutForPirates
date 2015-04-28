@@ -31,10 +31,12 @@ class Grapple extends Entity
 
 	private var grappleCollitionType:CbType = new CbType();
 	private var listener:InteractionListener;
+	private var parente:Entity;
 	
 	public function new(parent:Entity, offset:Vec2) 
 	{
 		super(BodyType.DYNAMIC, false, parent.body.position.add(parent.body.localVectorToWorld(offset, true), true), false);
+		this.parente = parent;
 		
 		body.shapes.add(new Circle(4));
 		sprite.graphics.lineStyle(2, 0xFFFFFFFF);
@@ -83,6 +85,9 @@ class Grapple extends Entity
 	{
 		listener.space = null;
 		var joint = new WeldJoint(e.int1.castBody, e.int2.castBody, Vec2.weak(0, 0), e.int2.castBody.worldPointToLocal(e.int1.castBody.position, true));
+		joint.space = body.space;
+		
+		var joint = new DistanceJoint(body, parente.body, Vec2.weak(), Vec2.weak(), 0, body.position.sub(parente.body.position,true).length);
 		joint.space = body.space;
 	}
 	
