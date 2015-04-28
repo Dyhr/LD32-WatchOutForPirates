@@ -1,7 +1,7 @@
 TODO LIST
 + Refractor classes
 + Fix ship physics
-- Better grappling
++ Better grappling
 - More intelligent enemy placement
 - Optimize
 - Magnetization effects

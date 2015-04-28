@@ -19,6 +19,7 @@ import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
+import openfl.Lib;
 import openfl.ui.Keyboard;
 #if debug
 import nape.util.ShapeDebug;
@@ -48,6 +49,8 @@ class Main extends Sprite
 	public var ready:Bool;
 	public var numEnemies:Int;
 	
+	private var pre_time:Float;
+	private var accum:Float;
 	private var stars:Stars;
 
 	public function new() 
@@ -76,6 +79,8 @@ class Main extends Sprite
 		enemy_goal = new Map<Ship, Wormhole>();
 		
 		setup();
+		accum = 0;
+		pre_time = Lib.getTimer()/1000;
 		
 		stage.focus = stage;
 		stage.addEventListener(Input.KEYPRESS, keyPress);
@@ -195,12 +200,20 @@ class Main extends Sprite
 	
 	private function update(e:Event):Void 
 	{
-		var stage_center = new Vec2(stage.stageWidth / 2, stage.stageHeight / 2);
-        space.step(1 / stage.frameRate);
+		var cur_time:Float = Lib.getTimer() / 1000;
+		var dt = cur_time - pre_time;
+		pre_time = cur_time;
+		accum += dt;
 		
-		for (entity in entities) {
-			entity.update(1 / stage.frameRate);
-			entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
+		var stage_center = new Vec2(stage.stageWidth / 2, stage.stageHeight / 2);
+		
+		while (accum >= 1 / stage.frameRate) {
+			accum -= 1 / stage.frameRate;
+			space.step(1 / stage.frameRate);
+			for (entity in entities) {
+				entity.update(1 / stage.frameRate);
+				entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
+			}
 		}
 		
 		stars.update( -canvas.x, -canvas.y);

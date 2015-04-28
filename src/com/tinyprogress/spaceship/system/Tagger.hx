@@ -7,8 +7,8 @@ package com.tinyprogress.spaceship.system;
 class Tagger
 {
 	private static var data:Map<String,Array<Entity>> = new Map<String,Array<Entity>>();
-	public static inline function get(tag:String) {
-		if (!data.exists(tag)) return null;
+	public static inline function get(tag:String):Array<Entity> {
+		if (!data.exists(tag)) return [];
 		return data.get(tag);
 	}
 	public static inline function set(entity:Entity, tag:String) {
