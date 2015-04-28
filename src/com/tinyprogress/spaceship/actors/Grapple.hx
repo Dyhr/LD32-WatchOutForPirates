@@ -82,7 +82,7 @@ class Grapple extends Entity
 	private function hit(e:InteractionCallback):Void 
 	{
 		listener.space = null;
-		var joint = new WeldJoint(cast(e.int1), cast(e.int2), Vec2.weak(0, 0), Vec2.weak(0, 0));
+		var joint = new WeldJoint(e.int1.castBody, e.int2.castBody, Vec2.weak(0, 0), e.int2.castBody.worldPointToLocal(e.int1.castBody.position, true));
 		joint.space = body.space;
 	}
 	
