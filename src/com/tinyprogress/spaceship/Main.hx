@@ -6,7 +6,6 @@ import com.tinyprogress.spaceship.actors.Wormhole;
 import com.tinyprogress.spaceship.effects.Stars;
 import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.system.Input;
-import com.tinyprogress.spaceship.system.ShipBuilder;
 import com.tinyprogress.spaceship.system.Tagger;
 import com.tinyprogress.spaceship.ui.End;
 import com.tinyprogress.spaceship.ui.TargetArrow;
@@ -15,7 +14,6 @@ import motion.easing.Quad;
 import nape.geom.Vec2;
 import nape.phys.MassMode;
 import nape.space.Space;
-import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
@@ -94,22 +92,23 @@ class Main extends Sprite
 	}
 	
 	private function setup() {
+		ready = false;
 		player = new Ship("player");
 		Tagger.set(player, "player");
 		
 		player.sprite.scaleX = player.sprite.scaleY = 0;
-		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(1.6);
+		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(1.2);
 		
 		player.body.position.x = 1700;
 		player.body.rotation = Math.PI;
 		
 		player.updates.push(function(entity:Entity, dt:Float) {
-			//if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
+			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
 			
 			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
 			
-			/*if (Input.keys[Keyboard.H] == 1 && player.grapples.length > 1) {
-				var bodies = [for (grapple in player.grapples) grapple.body2];
+			if (Input.keys[Keyboard.H] == 1 && player.grapplers.length > 1) {
+				var bodies = [for (grapple in player.grapplers) if(grapple.weld != null) grapple.weld.body2];
 				var center = Vec2.weak();
 				for (body in bodies) center = center.add(body.position, true);
 				center = center.mul(1 / bodies.length);
@@ -119,13 +118,14 @@ class Main extends Sprite
 					if (dir.length == 0) continue;
 					body.applyImpulse(dir.normalise().mul(30, true));
 				}
-			}*/
+			}
 			
 			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
 			if (pull != 0) {
-				/*for (c in player.grapplers) {
-					//c.jointMax = Math.max(c.jointMax+pull,0);
-				}*/
+				for (grapple in player.grapplers) {
+					if(grapple.distance != null)
+						grapple.distance.jointMax = Math.max(grapple.distance.jointMax+pull,0);
+				}
 			}
 			
 			canvas.x = -player.body.position.x + stage.stageWidth / 2;
@@ -165,7 +165,7 @@ class Main extends Sprite
 		stage.addChild(intro);
 		intro.y = -stage.stageHeight;
 		Actuate.tween(intro, 0.5, { y:stage.stageHeight/2 } ).ease(Quad.easeOut).onComplete(function(intro:End) {			
-			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(9).reflect().onComplete(function(intro:End) {				
+			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(8).reflect().onComplete(function(intro:End) {				
 				Actuate.tween(intro, 0.5, { y:-stage.stageHeight } ).ease(Quad.easeIn).onComplete(stage.removeChild, [intro]);
 			}, [intro]);
 		}, [intro]);
@@ -196,6 +196,10 @@ class Main extends Sprite
 		if (e.keyCode == Keyboard.R) reset();
 		if (e.keyCode == Keyboard.L) player.release();
 		if (e.keyCode == Keyboard.J) player.shoot();
+		if (e.keyCode == Keyboard.M) {
+			for (s in Tagger.get("enemy")) cast(s,Ship).release();
+			for (s in Tagger.get("player")) cast(s,Ship).release();
+		}
 	}
 	
 	private function update(e:Event):Void 

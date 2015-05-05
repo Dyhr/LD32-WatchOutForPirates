@@ -20,18 +20,13 @@ import openfl.display.Sprite;
  */
 class Grapple extends Entity
 {
-	public var offset2:Vec2;
-	public var offset1:Vec2;
-	public var body2:Body;
-	public var body1:Body;
-	
-	private var joint:DistanceJoint;
-	private var head:Sprite;
 	private var tail:Sprite;
 
 	private var grappleCollitionType:CbType = new CbType();
 	private var listener:InteractionListener;
 	private var parente:Entity;
+	public var weld:WeldJoint;
+	public var distance:DistanceJoint;
 	
 	public function new(parent:Entity, offset:Vec2) 
 	{
@@ -39,8 +34,9 @@ class Grapple extends Entity
 		this.parente = parent;
 		
 		body.shapes.add(new Circle(4));
-		sprite.graphics.lineStyle(2, 0xFFFFFFFF);
+		sprite.graphics.beginFill(0x445444);
 		sprite.graphics.drawCircle(0, 0, 4);
+		sprite.graphics.endFill();
 		
 		var dir = new Vec2(Math.cos(parent.body.rotation), Math.sin(parent.body.rotation));
 		body.applyImpulse(dir.normalise().mul(20));
@@ -67,10 +63,6 @@ class Grapple extends Entity
 		this.body2 = body2;
 		this.body1 = body1;*/
 		
-		head = new Sprite();
-		head.graphics.beginFill(0x445444);
-		head.graphics.drawCircle(0, 0, 4);
-		head.graphics.endFill();
 		tail = new Sprite();
 		tail.graphics.beginFill(0x405840);
 		tail.graphics.moveTo(0, 1);
@@ -84,35 +76,32 @@ class Grapple extends Entity
 	private function hit(e:InteractionCallback):Void 
 	{
 		listener.space = null;
-		var joint = new WeldJoint(e.int1.castBody, e.int2.castBody, Vec2.weak(0, 0), e.int2.castBody.worldPointToLocal(e.int1.castBody.position, true));
-		joint.space = body.space;
+		weld = new WeldJoint(e.int1.castBody, e.int2.castBody, Vec2.weak(0, 0), e.int2.castBody.worldPointToLocal(e.int1.castBody.position, true));
+		weld.space = body.space;
 		
-		var joint = new DistanceJoint(body, parente.body, Vec2.weak(), Vec2.weak(), 0, body.position.sub(parente.body.position,true).length);
-		joint.space = body.space;
+		distance = new DistanceJoint(body, parente.body, Vec2.weak(), Vec2.weak(), 0, body.position.sub(parente.body.position,true).length);
+		distance.space = body.space;
 	}
 	
 	public override function dispose():Void 
 	{
 		super.dispose();
-		if(head != null)head.parent.removeChild(head);
-		if(tail != null)tail.parent.removeChild(tail);
-		if(joint != null)joint.space = null;
+		if(tail != null && tail.parent != null)tail.parent.removeChild(tail);
+		if(weld != null)weld.space = null;
+		if(distance != null)distance.space = null;
 	}
 	
 	public override function update(dt:Float) {
 		super.update(dt);
 		
-		if (head.parent == null) sprite.parent.addChild(head);
 		if (tail.parent == null) sprite.parent.addChild(tail);
 		
-		/*var p1 = body1.localPointToWorld(offset1);
-		var p2 = body2.localPointToWorld(offset2);
+		var p1 = body.position;
+		var p2 = parente.body.position;
 		
-		head.x = p2.x;
-		head.y = p2.y;
 		tail.x = p1.x;
 		tail.y = p1.y;
 		tail.scaleX = Vec2.distance(p1, p2) / 100;
-		tail.rotation = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);*/
+		tail.rotation = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
 	}
 }

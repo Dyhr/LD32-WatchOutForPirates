@@ -22,7 +22,9 @@ import yaml.Yaml;
  */
 class Ship extends Entity
 {
-	public var grapplers:Map<Entity, Grapple>;
+	public var grapplers:Array<Grapple>;
+	public var attached(get, never):Array<Body>;
+	private function get_attached() return [for (grapple in grapplers) if(grapple.weld != null) grapple.weld.body2];
 	public var forward_force:Float;
 	public var turn_force:Float;
 	public var max_grapples:Int;
@@ -45,7 +47,7 @@ class Ship extends Entity
 		max_grapples = ship_data.grapples;
 		death_force = ship_data.death;
 		
-		grapplers = new Map<Entity,Grapple>();
+		grapplers = new Array<Grapple>();
 		var template = builder.convert(Assets.getText("data/player.yaml"));
 		var map = ["length"=>length, "wid"=>width, "nwid"=>widthnose];
 		var verts:Array<Array<Vec2>> = builder.vertices(template, map);
@@ -86,16 +88,17 @@ class Ship extends Entity
 	}
 	
 	public function release() {
-		if (body.space == null) return;
 		for (grapple in grapplers) {
 			grapple.dispose();
+			grapplers.remove(grapple);
 		}
 	}
 	
 	public function shoot() {
 		if (body.space == null) return;
-		if (0 < max_grapples) {
-			var grapple = new Grapple(this,new Vec2(60,0));
+		if (grapplers.length < max_grapples) {
+			var grapple = new Grapple(this, new Vec2(80, 0));
+			grapplers.push(grapple);
 		}
 	}
 	
