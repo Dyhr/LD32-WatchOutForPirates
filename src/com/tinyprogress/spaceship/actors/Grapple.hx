@@ -23,8 +23,8 @@ class Grapple extends Entity
 	private var tail:Sprite;
 
 	private var grappleCollitionType:CbType = new CbType();
-	private var listener:InteractionListener;
-	private var parente:Entity;
+	public var listener:InteractionListener;
+	public var parente:Entity;
 	public var weld:WeldJoint;
 	public var distance:DistanceJoint;
 	
@@ -34,7 +34,7 @@ class Grapple extends Entity
 		this.parente = parent;
 		
 		body.shapes.add(new Circle(4));
-		sprite.graphics.beginFill(0x445444);
+		sprite.graphics.beginFill(0x445474);
 		sprite.graphics.drawCircle(0, 0, 4);
 		sprite.graphics.endFill();
 		
@@ -45,26 +45,8 @@ class Grapple extends Entity
 		listener.space = body.space;
 		body.cbTypes.add(grappleCollitionType);
 		
-		/*var dir = new Vec2(Math.cos(body.rotation), Math.sin(body.rotation));
-		var ray = new Ray(body.position.add(dir, true), dir);
-		var hit = parent.body.space.rayCast(ray);
-		if (hit != null) {
-			if (hit.shape.body == parent.body) dispose();
-			var point = ray.at(hit.distance);
-			joint = new DistanceJoint(hit.shape.body, parent.body, offset, parent.body.worldPointToLocal(point, true), 0, Vec2.distance(hit.shape.body.position, point));
-			joint.space = parent.body.space;
-			
-			hit.dispose();
-		} else {
-			dispose();
-		}*/
-		/*this.offset2 = offset2;
-		this.offset1 = offset1;
-		this.body2 = body2;
-		this.body1 = body1;*/
-		
 		tail = new Sprite();
-		tail.graphics.beginFill(0x405840);
+		tail.graphics.beginFill(0x405870);
 		tail.graphics.moveTo(0, 1);
 		tail.graphics.lineTo(100, 1);
 		tail.graphics.lineTo(100, -1);

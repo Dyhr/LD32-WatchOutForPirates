@@ -1,7 +1,10 @@
 package com.tinyprogress.spaceship.actors;
 
 import com.tinyprogress.spaceship.system.Entity;
+import com.tinyprogress.spaceship.system.Tagger;
 import com.tinyprogress.spaceship.system.ShipBuilder;
+import motion.Actuate;
+import motion.easing.Expo;
 import nape.constraint.DistanceJoint;
 import nape.geom.Ray;
 import nape.geom.Vec2;
@@ -54,6 +57,8 @@ class Ship extends Entity
 		
 		builder.solidify(body, template, map);
 		builder.build(sprite, template, map);
+		
+		Tagger.set(this, "ship");
 	}
 	
 	public function move(x:Float, y:Float) {
@@ -84,13 +89,25 @@ class Ship extends Entity
 	
 	public override function dispose() {
 		release();
+		for (grapple in grapplers) {
+			grapplers.remove(grapple);
+			grapple.dispose();
+		}
 		super.dispose();
 	}
 	
 	public function release() {
 		for (grapple in grapplers) {
-			grapple.dispose();
-			grapplers.remove(grapple);
+			if (grapple.weld != null) grapple.weld.space = null;
+			if (grapple.listener != null) grapple.listener.space = null;
+			if (grapple.distance == null) {
+				grapple.distance = new DistanceJoint(grapple.body, grapple.parente.body, Vec2.weak(), Vec2.weak(), 0, grapple.body.position.sub(grapple.parente.body.position,true).length);
+				grapple.distance.space = body.space;
+			}
+			Actuate.tween(grapple.distance, 1, {jointMax:2}).ease(Expo.easeOut).onComplete(function(){
+				grapple.dispose();
+				grapplers.remove(grapple);
+			},[]);
 		}
 	}
 	

@@ -132,7 +132,7 @@ class Main extends Sprite
 			canvas.y = -player.body.position.y + stage.stageHeight / 2;
 		});
 		
-		for (i in 0...65) {
+		for (i in 0...85) {
 			var asteroid = new Asteroid(30+20*Math.random());
 			asteroid.x = 2000 * Math.random();
 			asteroid.y = -1000 + 2000 * Math.random();

@@ -1,5 +1,6 @@
 package com.tinyprogress.spaceship.system;
 
+import com.tinyprogress.spaceship.actors.Ship;
 import nape.callbacks.CbType;
 import nape.geom.Vec2;
 import nape.phys.Body;
@@ -47,6 +48,17 @@ class Entity
 		else sprite = cast(parent.addChildAt(new Sprite(), 0));
 	}
 	public function dispose() {
+		for (ent in Tagger.get("ship")) {
+			var ship = cast(ent, Ship);
+			for (grapple in ship.grapplers) {
+				if(grapple.weld != null){
+					if(grapple.weld.body1 == body || grapple.weld.body2 == body) {
+						grapple.weld.space = null;
+					}
+				}
+			}
+		}
+		
 		Main.instance.entities.remove(this);
 		body.cbTypes.remove(cb);
 		space.bodies.remove(body);

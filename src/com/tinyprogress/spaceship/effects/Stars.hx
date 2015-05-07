@@ -23,7 +23,7 @@ class Stars extends Sprite
 		wid = 0;
 		arr = [for (i in 0...2) {
 			var sprite = new Sprite();
-			sprite.cacheAsBitmap = true;
+			//sprite.cacheAsBitmap = true;
 			sprite;
 		}];
 		bits = [for (s in arr) {
