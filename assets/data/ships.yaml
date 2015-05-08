@@ -3,12 +3,12 @@ player:
     r: 34
     g: 34
     b: 136
-  length: 40
-  width: 10
-  widthnose: 3
+  length: 16
+  width: 6
+  widthnose: 1
   force:
-    forward: 9
-    turn: 20
+    forward: 2
+    turn: 10
   grapples: 8
   death: 100000
 enemy_1: 
@@ -16,11 +16,11 @@ enemy_1:
     r: 200
     g: 50
     b: 10
-  length: 60
-  width: 20
-  widthnose: 5
+  length: 20
+  width: 8
+  widthnose: 3
   force:
-    forward: 5
-    turn: 10
+    forward: 1
+    turn: 100
   grapples: 1
   death: 8000
