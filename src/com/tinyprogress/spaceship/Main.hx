@@ -3,6 +3,7 @@ package com.tinyprogress.spaceship;
 import com.tinyprogress.spaceship.actors.Asteroid;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
+import com.tinyprogress.spaceship.effects.Magnet;
 import com.tinyprogress.spaceship.effects.Stars;
 import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.system.Input;
@@ -117,6 +118,15 @@ class Main extends Sprite
 					var dir = center.sub(body.position);
 					if (dir.length == 0) continue;
 					body.applyImpulse(dir.normalise().mul(30, true));
+					
+					var ent = Entity.bodies.get(body);
+					if (Magnet.targets.indexOf(ent) < 0) {
+						new Magnet(ent);
+					}
+				}
+			} else {
+				for (magnet in Tagger.get("magnet")) {
+					magnet.dispose();
 				}
 			}
 			

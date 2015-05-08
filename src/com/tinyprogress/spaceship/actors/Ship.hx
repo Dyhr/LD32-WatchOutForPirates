@@ -51,7 +51,7 @@ class Ship extends Entity
 		death_force = ship_data.death;
 		
 		grapplers = new Array<Grapple>();
-		var template = builder.convert(Assets.getText("data/player.yaml"));
+		var template = builder.convert(Assets.getText("data/"+type+".yaml"));
 		var map = ["length"=>length, "wid"=>width, "nwid"=>widthnose];
 		var verts:Array<Array<Vec2>> = builder.vertices(template, map);
 		
@@ -88,10 +88,11 @@ class Ship extends Entity
 	}
 	
 	public override function dispose() {
-		release();
 		for (grapple in grapplers) {
-			grapplers.remove(grapple);
 			grapple.dispose();
+		}
+		while (grapplers.length > 0) {
+			grapplers.pop();
 		}
 		super.dispose();
 	}
