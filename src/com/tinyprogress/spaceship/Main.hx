@@ -15,10 +15,13 @@ import motion.easing.Quad;
 import nape.geom.Vec2;
 import nape.phys.MassMode;
 import nape.space.Space;
+import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 import openfl.Lib;
+import openfl.media.Sound;
+import openfl.media.SoundChannel;
 import openfl.ui.Keyboard;
 #if debug
 import nape.util.ShapeDebug;
@@ -47,6 +50,15 @@ class Main extends Sprite
 	public var goal:Wormhole;
 	public var ready:Bool;
 	public var numEnemies:Int;
+	public var playing(default, set):String;
+	private var music:SoundChannel;
+	private function set_playing(file:String) {
+		if (file == playing) return playing;
+		var sound = Assets.getMusic("music/"+file);
+		if (music != null) music.stop();
+		music = sound.play(0.0, 100000);
+		return file;
+	}
 	
 	private var pre_time:Float;
 	private var accum:Float;
@@ -79,7 +91,8 @@ class Main extends Sprite
 		
 		setup();
 		accum = 0;
-		pre_time = Lib.getTimer()/1000;
+		pre_time = Lib.getTimer() / 1000;
+		playing = "Orion 300XB.wav";
 		
 		stage.focus = stage;
 		stage.addEventListener(Input.KEYPRESS, keyPress);
