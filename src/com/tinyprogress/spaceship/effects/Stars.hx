@@ -12,7 +12,6 @@ import openfl.display.Sprite;
 class Stars extends Sprite
 {
 	private var arr:Array<Sprite>;
-	private var bits:Array<Bitmap>;
 	private var wid:Float;
 	private var hei:Float;
 	
@@ -23,18 +22,13 @@ class Stars extends Sprite
 		wid = 0;
 		arr = [for (i in 0...2) {
 			var sprite = new Sprite();
-			//sprite.cacheAsBitmap = true;
+			sprite.cacheAsBitmap = true;
+			addChild(sprite);
 			sprite;
-		}];
-		bits = [for (s in arr) {
-			var data = new BitmapData(cast(s.width), cast(s.height), true, 0x00000000);
-			data.draw(s);
-			cast(addChild(new Bitmap(data, PixelSnapping.NEVER, true)));
 		}];
 	}
 	
 	public function update(x:Float, y:Float) {
-		var changed = false;
 		if (wid < stage.stageWidth*2) {
 			var w = stage.stageWidth*2 - wid;
 			
@@ -46,7 +40,6 @@ class Stars extends Sprite
 				}
 			}
 			wid = stage.stageWidth*2;
-			changed = true;
 		}
 		if (hei < stage.stageHeight*2) {
 			var h = stage.stageHeight * 2 - hei;
@@ -59,18 +52,10 @@ class Stars extends Sprite
 				}
 			}
 			hei = stage.stageHeight*2;
-			changed = true;
 		}
-		if (changed) {
-			for(i in 0...bits.length){
-				var data = new BitmapData(stage.stageWidth*2, stage.stageHeight*2, true, 0x00000000);
-				data.draw(arr[i]);
-				bits[i].bitmapData = data;
-			}
-		}
-		for (i in 0...bits.length) {
-			bits[i].x = Math.floor(x/((bits.length-i)*32)) % stage.stageWidth - stage.stageWidth;
-			bits[i].y = Math.floor(y/((bits.length-i)*32)) % stage.stageHeight;
+		for (i in 0...arr.length) {
+			arr[i].x = Math.floor(x/((arr.length-i)*32)) % stage.stageWidth - stage.stageWidth;
+			arr[i].y = Math.floor(y/((arr.length-i)*32)) % stage.stageHeight;
 		}
 	}
 }

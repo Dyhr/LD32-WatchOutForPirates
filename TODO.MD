@@ -10,6 +10,7 @@ TODO LIST
 - Improve tagger
 - Music
 
+DONE
 + Refractor classes
 + Fix ship physics
 + Better grappling

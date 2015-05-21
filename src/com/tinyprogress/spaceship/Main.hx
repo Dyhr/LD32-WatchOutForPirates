@@ -107,7 +107,7 @@ class Main extends Sprite
 	
 	private function setup() {
 		ready = false;
-		player = new Ship("player");
+		/*player = new Ship("player");
 		Tagger.set(player, "player");
 		
 		player.sprite.scaleX = player.sprite.scaleY = 0;
@@ -182,7 +182,7 @@ class Main extends Sprite
 		goal.updates.push(updatewormhole);
 		
 		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
-		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));
+		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));*/
 		
 		var intro = new End("WATCH OUT FOR PIRATES", false);
 		stage.addChild(intro);
@@ -214,8 +214,7 @@ class Main extends Sprite
 		init(null);
 	}
 	
-	private function keyPress(e:KeyboardEvent):Void 
-	{
+	private function keyPress(e:KeyboardEvent):Void {
 		if (e.keyCode == Keyboard.R) reset();
 		if (e.keyCode == Keyboard.L) player.release();
 		if (e.keyCode == Keyboard.J) player.shoot();
@@ -225,8 +224,7 @@ class Main extends Sprite
 		}
 	}
 	
-	private function update(e:Event):Void 
-	{
+	private function update(e:Event):Void {
 		var cur_time:Float = Lib.getTimer() / 1000;
 		var dt = cur_time - pre_time;
 		pre_time = cur_time;
