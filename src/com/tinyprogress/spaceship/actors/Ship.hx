@@ -42,17 +42,18 @@ class Ship extends Entity
 		if (ship_data == null) {
 			throw new ArgumentError("Ship type not found: "+type);
 		}
-		var width:Float = ship_data.width;
-		var widthnose:Float = ship_data.widthnose;
-		var length:Float = ship_data.length;
 		forward_force = ship_data.force.forward;
 		turn_force = ship_data.force.turn;
 		max_grapples = ship_data.grapples;
 		death_force = ship_data.death;
 		
+		var param = ship_data.param;
+		var map = [for(field in Reflect.fields(param)) {
+			field => Reflect.field(param, field);
+		}];
+		
 		grapplers = new Array<Grapple>();
-		var template = builder.convert(Assets.getText("data/player.yaml"));
-		var map = ["length"=>length, "wid"=>width, "nwid"=>widthnose];
+		var template = builder.convert(Assets.getText("data/"+ship_data.ship));
 		var verts:Array<Array<Vec2>> = builder.vertices(template, map);
 		
 		builder.solidify(body, template, map);

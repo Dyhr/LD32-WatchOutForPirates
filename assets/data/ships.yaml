@@ -1,24 +1,20 @@
 player: 
-  main_color:
-    r: 34
-    g: 34
-    b: 136
-  length: 40
-  width: 10
-  widthnose: 3
+  ship: player.yaml
+  param:
+    wid: 10
+    nwid: 3
+    length: 40
   force:
     forward: 9
     turn: 20
   grapples: 8
   death: 100000
 enemy_1: 
-  main_color:
-    r: 200
-    g: 50
-    b: 10
-  length: 60
-  width: 20
-  widthnose: 5
+  ship: player.yaml
+  param:
+    wid: 20
+    nwid: 5
+    length: 60
   force:
     forward: 5
     turn: 10

@@ -220,7 +220,7 @@ class Main extends Sprite
 			}
 		}
 		
-		stars.update( -canvas.x, -canvas.y);
+		//stars.update( -canvas.x, -canvas.y);
 		
 		#if debug
         debug.clear();
