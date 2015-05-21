@@ -26,6 +26,7 @@ import yaml.Yaml;
 class Ship extends Entity
 {
 	public var grapplers:Array<Grapple>;
+	private var guns:Array<Gun>;
 	public var attached(get, never):Array<Body>;
 	private function get_attached() return [for (grapple in grapplers) if(grapple.weld != null) grapple.weld.body2];
 	public var forward_force:Float;
@@ -53,7 +54,8 @@ class Ship extends Entity
 		}];
 		
 		grapplers = new Array<Grapple>();
-		var template = builder.convert(Assets.getText("data/"+ship_data.ship));
+		guns = new Array<Gun>();
+		var template = builder.convert(Assets.getText("data/"+ship_data.ship), guns, map);
 		var verts:Array<Array<Vec2>> = builder.vertices(template, map);
 		
 		builder.solidify(body, template, map);

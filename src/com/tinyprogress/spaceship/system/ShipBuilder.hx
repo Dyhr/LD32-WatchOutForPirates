@@ -1,5 +1,6 @@
 package com.tinyprogress.spaceship.system;
 
+import com.tinyprogress.spaceship.actors.Gun;
 import com.tinyprogress.spaceship.system.ShipBuilder.Value;
 import nape.geom.Vec2;
 import nape.phys.Body;
@@ -20,34 +21,66 @@ class ShipBuilder
 		
 	}	
 	
-	public function convert(yaml:String) {
+	public function convert(yaml:String, guns:Array<Gun>, map:Map<String,Float>) {
 		var out = new Array<Polygon>();
 		var data:Array<Dynamic> = Yaml.parse(yaml, Parser.options().useObjects());
 		for (poly in data) {
-			var polygon = new Polygon();
-			polygon.color = poly.color;
-			polygon.solid = poly.solid;
-			polygon.verts = new Array<Vertex>();
-			var verts:Array<Dynamic> = poly.verts;
-			for (vert in verts) {
-				var x:Value, y:Value;
-				
-				switch (Type.typeof(vert[0])) {
-				case TInt | TFloat: x = Number(vert[0]);
-				case TClass(String): x = Reference(vert[0]);
+			switch(poly.type) {
+			case "poly":
+				var polygon = new Polygon();
+				polygon.color = poly.color;
+				polygon.solid = poly.solid;
+				polygon.verts = new Array<Vertex>();
+				var verts:Array<Dynamic> = poly.verts;
+				for (vert in verts) {
+					var x:Value, y:Value;
+					
+					switch (Type.typeof(vert[0])) {
+					case TInt | TFloat: x = Number(vert[0]);
+					case TClass(String): x = Reference(vert[0]);
+					default:
+						throw new Error("Malformed yaml");
+					}
+					switch (Type.typeof(vert[1])) {
+					case TInt | TFloat: y = Number(vert[1]);
+					case TClass(String): y = Reference(vert[1]);
+					default:
+						throw new Error("Malformed yaml");
+					}
+					
+					polygon.verts.push(new Vertex(x,y));
+				}
+				out.push(polygon);
+			case "grapple":
+				var x:Float, y:Float, fx:Float, fy:Float;
+					
+				switch (Type.typeof(poly.x)) {
+				case TInt | TFloat: x = poly.x;
+				case TClass(String): x = map.get(poly.x);
 				default:
 					throw new Error("Malformed yaml");
 				}
-				switch (Type.typeof(vert[1])) {
-				case TInt | TFloat: y = Number(vert[1]);
-				case TClass(String): y = Reference(vert[1]);
+				switch (Type.typeof(poly.y)) {
+				case TInt | TFloat: y = poly.y;
+				case TClass(String): y = map.get(poly.y);
+				default:
+					throw new Error("Malformed yaml");
+				}
+				switch (Type.typeof(poly.face.x)) {
+				case TInt | TFloat: fx = poly.face.x;
+				case TClass(String): fx = map.get(poly.face.x);
+				default:
+					throw new Error("Malformed yaml");
+				}
+				switch (Type.typeof(poly.face.y)) {
+				case TInt | TFloat: fy = poly.face.y;
+				case TClass(String): fy = map.get(poly.face.y);
 				default:
 					throw new Error("Malformed yaml");
 				}
 				
-				polygon.verts.push(new Vertex(x,y));
+				guns.push(new Gun(x,y,fx,fy,poly.ammo));
 			}
-			out.push(polygon);
 		}
 		return out;
 	}

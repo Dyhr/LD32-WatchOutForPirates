@@ -1,5 +1,6 @@
 --- 
 - 
+  type: poly
   color: 0x32cd32
   solid: true
   verts: 
@@ -16,6 +17,7 @@
       - 0.0
       - wid_n
 - 
+  type: poly
   color: 0x12ad12
   verts: 
     - 
@@ -30,3 +32,11 @@
     - 
       - 0.0
       - wid_n
+-
+  type: grapple
+  x: length
+  y: 0.0
+  face:
+    x: 1.0
+    y: 0.0
+  ammo: default
