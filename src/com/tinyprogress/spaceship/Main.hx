@@ -63,6 +63,7 @@ class Main extends Sprite
 	private var pre_time:Float;
 	private var accum:Float;
 	private var stars:Stars;
+	private var speed:Float;
 
 	public function new() 
 	{
@@ -240,7 +241,7 @@ class Main extends Sprite
 				entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
 			}
 		}
-		
+		canvas.x += dt * speed;
 		stars.update( -canvas.x, -canvas.y);
 		
 		#if debug

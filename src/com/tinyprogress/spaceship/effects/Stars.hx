@@ -54,7 +54,7 @@ class Stars extends Sprite
 			hei = stage.stageHeight*2;
 		}
 		for (i in 0...arr.length) {
-			arr[i].x = Math.floor(x/((arr.length-i)*32)) % stage.stageWidth - stage.stageWidth;
+			arr[i].x = Math.floor(x/((arr.length-i)*32)) % stage.stageWidth;
 			arr[i].y = Math.floor(y/((arr.length-i)*32)) % stage.stageHeight;
 		}
 	}
