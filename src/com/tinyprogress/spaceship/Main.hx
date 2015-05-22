@@ -9,6 +9,7 @@ import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.system.Input;
 import com.tinyprogress.spaceship.system.Tagger;
 import com.tinyprogress.spaceship.ui.End;
+import com.tinyprogress.spaceship.ui.Start;
 import com.tinyprogress.spaceship.ui.TargetArrow;
 import motion.Actuate;
 import motion.easing.Quad;
@@ -185,14 +186,9 @@ class Main extends Sprite
 		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
 		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));*/
 		
-		var intro = new End("WATCH OUT FOR PIRATES", false);
+		var intro = new Start();
 		stage.addChild(intro);
-		intro.y = -stage.stageHeight;
-		Actuate.tween(intro, 0.5, { y:stage.stageHeight/2 } ).ease(Quad.easeOut).onComplete(function(intro:End) {			
-			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(8).reflect().onComplete(function(intro:End) {				
-				Actuate.tween(intro, 0.5, { y:-stage.stageHeight } ).ease(Quad.easeIn).onComplete(stage.removeChild, [intro]);
-			}, [intro]);
-		}, [intro]);
+		speed = 4000;
 		
 		#if debug
 		trace("Game Started");
