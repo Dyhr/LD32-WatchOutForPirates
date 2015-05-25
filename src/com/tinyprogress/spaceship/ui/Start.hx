@@ -1,8 +1,11 @@
 package com.tinyprogress.spaceship.ui;
 
 import motion.Actuate;
+import openfl.display.DisplayObject;
+import openfl.display.SimpleButton;
 import openfl.display.Sprite;
 import openfl.events.Event;
+import openfl.events.MouseEvent;
 import openfl.text.AntiAliasType;
 import openfl.text.TextField;
 import openfl.text.TextFieldAutoSize;
@@ -17,7 +20,7 @@ class Start extends Sprite
 	private var format:TextFormat = new TextFormat("Comfortaa", 32, 0xDDBB77, true);
 	private var title:TextField;
 	
-	private var buttons:Array<TextField> = [];
+	private var buttons:Array<DisplayObject> = [];
 
 	public function new() 
 	{
@@ -33,42 +36,41 @@ class Start extends Sprite
 		title.text = "Watch Out for Pirates";
 		addChild(title);
 		
-		format.size = 24;
-		var butt = new TextField();
-		butt.embedFonts = true;
-		butt.defaultTextFormat = format;
-		butt.setTextFormat(format);
-		butt.autoSize = TextFieldAutoSize.LEFT;
-		butt.antiAliasType = AntiAliasType.ADVANCED;
-		butt.mouseEnabled = false;
-		butt.text = "Play";
-		addChild(butt);
-		buttons.push(butt);
-		
-		butt = new TextField();
-		butt.embedFonts = true;
-		butt.defaultTextFormat = format;
-		butt.setTextFormat(format);
-		butt.autoSize = TextFieldAutoSize.LEFT;
-		butt.antiAliasType = AntiAliasType.ADVANCED;
-		butt.mouseEnabled = false;
-		butt.text = "Credits";
-		addChild(butt);
-		buttons.push(butt);
-		
-		butt = new TextField();
-		butt.embedFonts = true;
-		butt.defaultTextFormat = format;
-		butt.setTextFormat(format);
-		butt.autoSize = TextFieldAutoSize.LEFT;
-		butt.antiAliasType = AntiAliasType.ADVANCED;
-		butt.mouseEnabled = false;
-		butt.text = "Quit";
-		addChild(butt);
-		buttons.push(butt);
+		var butt = create("Play", 24);
+		butt = create("Credits", 24);
+		butt = create("Quit", 24);
+		bind(butt, function(e:MouseEvent) {
+			trace("Wuite");
+		});
 		
 		addEventListener(Event.ENTER_FRAME, update);
 		addEventListener(Event.REMOVED_FROM_STAGE, destroy);
+	}
+	
+	private function create(text:String, size:Int):DisplayObject {
+		format.size = size;
+		var textfield = new TextField();
+		textfield.embedFonts = true;
+		textfield.defaultTextFormat = format;
+		textfield.setTextFormat(format);
+		textfield.autoSize = TextFieldAutoSize.LEFT;
+		textfield.antiAliasType = AntiAliasType.ADVANCED;
+		textfield.mouseEnabled = false;
+		textfield.multiline = false;
+		textfield.text = text;
+		
+		var hit = new Sprite();
+		hit.graphics.beginFill();
+		hit.graphics.drawRect(0, 0, textfield.width, textfield.height);
+		hit.graphics.endFill();
+		
+		var button = new SimpleButton(textfield, textfield, textfield, hit);
+		addChild(button);
+		buttons.push(button);
+		return button;
+	}
+	private function bind(button:DisplayObject, click:Dynamic->Void) {
+		button.addEventListener(MouseEvent.MOUSE_UP, click);
 	}
 	
 	private function update(e:Event):Void 
@@ -80,7 +82,7 @@ class Start extends Sprite
 		for (button in buttons) {
 			button.x = - button.width / 2 + stage.stageWidth / 2;
 			button.y = stage.stageHeight / 4 + title.height + pos;
-			pos += button.height + 6;
+			pos += button.height/4 + 6;
 		}
 	}
 	
