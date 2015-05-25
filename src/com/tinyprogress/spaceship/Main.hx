@@ -65,6 +65,7 @@ class Main extends Sprite
 	private var accum:Float;
 	private var stars:Stars;
 	private var speed:Float;
+	private var intro:Start;
 
 	public function new() 
 	{
@@ -109,7 +110,21 @@ class Main extends Sprite
 	
 	private function setup() {
 		ready = false;
-		/*player = new Ship("player");
+		
+		intro = new Start(this);
+		stage.addChild(intro);
+		speed = 4000;
+		
+		#if debug
+		trace("Game Started");
+		#end
+	}
+	
+	public function start() {
+		speed = 0;
+		stage.removeChild(intro);
+		
+		player = new Ship("player");
 		Tagger.set(player, "player");
 		
 		player.sprite.scaleX = player.sprite.scaleY = 0;
@@ -118,44 +133,46 @@ class Main extends Sprite
 		player.body.position.x = 1700;
 		player.body.rotation = Math.PI;
 		
-		player.updates.push(function(entity:Entity, dt:Float) {
-			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
-			
-			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
-			
-			if (Input.keys[Keyboard.H] == 1 && player.grapplers.length > 1) {
-				var bodies = [for (grapple in player.grapplers) if(grapple.weld != null) grapple.weld.body2];
-				var center = Vec2.weak();
-				for (body in bodies) center = center.add(body.position, true);
-				center = center.mul(1 / bodies.length);
+		Actuate.tween(canvas, 1, { x: -player.body.position.x + stage.stageWidth / 2, y: -player.body.position.y + stage.stageHeight / 2 } ).onComplete(player.updates.push, [
+			function(entity:Entity, dt:Float) {
+				if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
 				
-				for (body in bodies) {
-					var dir = center.sub(body.position);
-					if (dir.length == 0) continue;
-					body.applyImpulse(dir.normalise().mul(30, true));
+				player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
+				
+				if (Input.keys[Keyboard.H] == 1 && player.grapplers.length > 1) {
+					var bodies = [for (grapple in player.grapplers) if(grapple.weld != null) grapple.weld.body2];
+					var center = Vec2.weak();
+					for (body in bodies) center = center.add(body.position, true);
+					center = center.mul(1 / bodies.length);
 					
-					var ent = Entity.bodies.get(body);
-					if (Magnet.targets.indexOf(ent) < 0) {
-						new Magnet(ent);
+					for (body in bodies) {
+						var dir = center.sub(body.position);
+						if (dir.length == 0) continue;
+						body.applyImpulse(dir.normalise().mul(30, true));
+						
+						var ent = Entity.bodies.get(body);
+						if (Magnet.targets.indexOf(ent) < 0) {
+							new Magnet(ent);
+						}
+					}
+				} else {
+					for (magnet in Tagger.get("magnet")) {
+						magnet.dispose();
 					}
 				}
-			} else {
-				for (magnet in Tagger.get("magnet")) {
-					magnet.dispose();
+				
+				var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
+				if (pull != 0) {
+					for (grapple in player.grapplers) {
+						if(grapple.distance != null)
+							grapple.distance.jointMax = Math.max(grapple.distance.jointMax+pull,0);
+					}
 				}
+				
+				canvas.x = -player.body.position.x + stage.stageWidth / 2;
+				canvas.y = -player.body.position.y + stage.stageHeight / 2; 
 			}
-			
-			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
-			if (pull != 0) {
-				for (grapple in player.grapplers) {
-					if(grapple.distance != null)
-						grapple.distance.jointMax = Math.max(grapple.distance.jointMax+pull,0);
-				}
-			}
-			
-			canvas.x = -player.body.position.x + stage.stageWidth / 2;
-			canvas.y = -player.body.position.y + stage.stageHeight / 2;
-		});
+		]);
 		
 		for (i in 0...85) {
 			var asteroid = new Asteroid(30+20*Math.random());
@@ -184,15 +201,7 @@ class Main extends Sprite
 		goal.updates.push(updatewormhole);
 		
 		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
-		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));*/
-		
-		var intro = new Start();
-		stage.addChild(intro);
-		speed = 4000;
-		
-		#if debug
-		trace("Game Started");
-		#end
+		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));
 	}
 	
 	private function destroy():Void {
@@ -237,6 +246,7 @@ class Main extends Sprite
 				entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
 			}
 		}
+		
 		canvas.x += dt * speed;
 		stars.update( -canvas.x, -canvas.y);
 		

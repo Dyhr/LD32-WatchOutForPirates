@@ -24,7 +24,7 @@ class Start extends Sprite
 	
 	private var buttons:Array<DisplayObject> = [];
 
-	public function new() 
+	public function new(main:Main) 
 	{
 		super();
 		
@@ -40,7 +40,7 @@ class Start extends Sprite
 		
 		var butt = create("Play", 24);
 		bind(butt, function(e:MouseEvent) {
-			// TODO
+			main.start();
 		});
 		butt = create("Credits", 24);
 		bind(butt, function(e:MouseEvent) {
