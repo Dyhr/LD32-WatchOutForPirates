@@ -5,10 +5,14 @@ TODO LIST
 - Redo enemy grappling
 - Support more enemy types
 - Draw better receptacle
+- Draw better treasure
 - Fix stars! In the background! On HTML5!
 - Particles
-- Improve tagger
+- Improve tagger. // What was this?
 - Music
+- Health
+- Menu
+- Fix stuttering stars
 
 DONE
 + Refractor classes

@@ -6,6 +6,8 @@ import openfl.display.SimpleButton;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.MouseEvent;
+import openfl.Lib;
+import openfl.system.System;
 import openfl.text.AntiAliasType;
 import openfl.text.TextField;
 import openfl.text.TextFieldAutoSize;
@@ -37,10 +39,16 @@ class Start extends Sprite
 		addChild(title);
 		
 		var butt = create("Play", 24);
+		bind(butt, function(e:MouseEvent) {
+			// TODO
+		});
 		butt = create("Credits", 24);
+		bind(butt, function(e:MouseEvent) {
+			// TODO
+		});
 		butt = create("Quit", 24);
 		bind(butt, function(e:MouseEvent) {
-			trace("Wuite");
+			System.exit(0);
 		});
 		
 		addEventListener(Event.ENTER_FRAME, update);
@@ -58,6 +66,7 @@ class Start extends Sprite
 		textfield.mouseEnabled = false;
 		textfield.multiline = false;
 		textfield.text = text;
+		textfield.height = size;
 		
 		var hit = new Sprite();
 		hit.graphics.beginFill();
@@ -82,7 +91,7 @@ class Start extends Sprite
 		for (button in buttons) {
 			button.x = - button.width / 2 + stage.stageWidth / 2;
 			button.y = stage.stageHeight / 4 + title.height + pos;
-			pos += button.height/4 + 6;
+			pos += button.height + 6;
 		}
 	}
 	
