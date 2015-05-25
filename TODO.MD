@@ -11,7 +11,6 @@ TODO LIST
 - Improve tagger. // What was this?
 - Music
 - Health
-- Menu
 - Fix stuttering stars
 
 DONE
@@ -21,3 +20,4 @@ DONE
 + Better ship definitions
 + Stars! In the background!
 + Magnetization effects
++ Menu
