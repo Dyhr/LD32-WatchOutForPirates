@@ -1,0 +1,32 @@
+--- 
+- 
+  color: 0x32cd32
+  solid: true
+  verts: 
+    - 
+      - length
+      - nwid_n
+    - 
+      - length
+      - nwid
+    - 
+      - 0.0
+      - wid
+    - 
+      - 0.0
+      - wid_n
+- 
+  color: 0x12ad12
+  verts: 
+    - 
+      - wid_n
+      - nwid_n
+    - 
+      - wid_n
+      - nwid
+    - 
+      - 0.0
+      - wid
+    - 
+      - 0.0
+      - wid_n

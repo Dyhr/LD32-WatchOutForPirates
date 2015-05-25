@@ -8,7 +8,7 @@
 	<!-- output -->
 	<app main="com.tinyprogress.spaceship.Main" file="WatchOutForPirates" path="bin" />
 	
-	<window background="#200020" fps="60" />
+	<window background="#140014" fps="60" />
 	<window width="900" height="500" unless="mobile" />
 	<window orientation="landscape" vsync="false" antialiasing="4" if="cpp" />
 	
@@ -24,8 +24,9 @@
 	<icon path="assets/openfl.svg" />
 	<assets path="assets/img" rename="img" />
 	<assets path="assets/data" rename="data" />
+	<assets path="assets/music" rename="music" type="music" />
 	
-	<!-- optimize output
+	<!-- optimize output 
 	<haxeflag name="-dce full" /> -->
 	
 </project>

@@ -1,4 +1,9 @@
 package com.tinyprogress.spaceship;
+import com.tinyprogress.spaceship.actors.Asteroid;
+import com.tinyprogress.spaceship.actors.Ship;
+import com.tinyprogress.spaceship.actors.Wormhole;
+import com.tinyprogress.spaceship.system.Entity;
+import com.tinyprogress.spaceship.system.Tagger;
 import motion.Actuate;
 import nape.geom.Vec2;
 import nape.phys.Body;
@@ -14,66 +19,37 @@ class Util
 {
 	public static inline function createEnemy(main:Main)
 	{
-		var enemy = new Ship("enemy_1", main);
-		main.enemies.push(enemy);
+		var enemy = new Ship("enemy_1");
+		Tagger.set(enemy, "enemy");
+		enemy.updates.push(function(entity:Entity, dt:Float) {
+			var d = enemy.body.position.sub(main.treasure.body.position);
+			var t = new Vec2(enemy.body.position.x - main.enemy_goal[enemy].x, enemy.body.position.y - main.enemy_goal[enemy].y);
+			var angle = switch(enemy.attached.indexOf(main.treasure.body) < 0) {
+			case true:
+				enemy.body.rotation - Math.atan2(d.y, d.x);
+			case false:
+				enemy.body.rotation - Math.atan2(t.y, t.x);
+			}
+			while (angle < -Math.PI) angle += Math.PI * 2;
+			while (angle >  Math.PI) angle -= Math.PI * 2;
+			
+			var on_track = Math.PI / 2 - Math.abs(angle) < Math.PI / 8;
+			enemy.move(angle, on_track ? 1 : 0);
+			if(on_track)
+				enemy.body.applyAngularImpulse(enemy.body.angularVel * 10 * (Math.PI / 8 - Math.abs(angle)));
+			if (enemy.attached.indexOf(main.treasure.body) < 0 && d.length < 200 && enemy.target() == main.treasure.body) {
+				enemy.shoot();
+			}
+		});
 		return enemy;
 	}
 	
-	public static inline function createAsteroid(main:Main, radius:Float, random:Float = 0.2) {
-		var vertices = new Array<Vec2>();
-		
-		for (i in 0...8) {
-			var angle = i * ((Math.PI * 2) / 8);
-			vertices.push(new Vec2(Math.cos(angle) * radius, Math.sin(angle) * radius));
-		}
-		
-		var asteroid_body = buildBody(vertices, BodyType.DYNAMIC);
-		asteroid_body.space = main.space;
-		
-		var asteroid = new Sprite();
-		buildShape(vertices, 0x8844AA, asteroid);
-		main.addChild(asteroid);
-		asteroid.name = "Asteroid";
-		
-		asteroid.scaleX = asteroid.scaleY = 0;
-		Actuate.tween(asteroid, 0.8, { scaleX:1, scaleY:1 } ).delay(Math.random()*0.5);
-		
-		main.follow.set(asteroid, asteroid_body);
-		return asteroid_body;
-	}
-	
-	public static inline function buildBody(vertices:Array<Vec2>, type:BodyType):Body {
-		var body = new Body(type);
-		var polygon = new Polygon(vertices);
-		if(vertices.length > 0){
-			var center = Vec2.weak();
-			for (vertex in vertices) center = center.add(vertex, true);
-			center = center.mul(1/vertices.length, true);
-			polygon.localCOM = center;
-		}
-		body.shapes.add(polygon);
-		return body;
-	}
-	public static inline function buildShape(vertices:Array<Vec2>, color:Int, sprite:Sprite) {
-		var center = Vec2.weak();
-		for (vertex in vertices) center = center.add(vertex, true);
-		center = center.mul(1 / vertices.length);
-		
-		sprite.graphics.beginFill(color);
-		sprite.graphics.moveTo(vertices[vertices.length - 1].x, vertices[vertices.length - 1].y);
-		for (vertex in vertices) {
-			sprite.graphics.lineTo(vertex.x, vertex.y);
-		}
-		sprite.graphics.endFill();
-	}
-	
 	public static function spawnWave(main:Main, amount:Int) {
-		var pos = new Vec2(Math.random()-0.5, Math.random()-0.5).normalise().mul(1000, true).add(main.treasure.position);
+		var pos = new Vec2(Math.random()-0.5, Math.random()-0.5).normalise().mul(1000, true).add(main.treasure.body.position);
 		
-		var goal = new Wormhole(100, 0x282848);
-		main.addChildAt(goal, 0);
-		goal.x = pos.x; goal.y = pos.y;
-		main.holes.push(goal);
+		var goal = new Wormhole(100, 0x282848, pos);
+		Tagger.set(goal, "goal");
+		goal.updates.push(main.updatewormhole);
 		
 		for (i in 0...amount) {
 			var enemy = Util.createEnemy(main);
@@ -86,7 +62,7 @@ class Util
 	
 	public static function release(body:Body, ships:Array<Ship>) 
 	{
-		for (ship in ships) {
+		/*for (ship in ships) {
 			for (joint in ship.grapples) {
 				if (joint.body1 == body || joint.body2 == body) {
 					joint.space = null;
@@ -97,6 +73,6 @@ class Util
 					if(ship.attached.indexOf(joint.body2)>=0)ship.attached.remove(joint.body2);
 				}
 			}
-		}
+		}*/
 	}
 }

@@ -1,18 +1,28 @@
 package com.tinyprogress.spaceship;
 
+import com.tinyprogress.spaceship.actors.Asteroid;
+import com.tinyprogress.spaceship.actors.Ship;
+import com.tinyprogress.spaceship.actors.Wormhole;
+import com.tinyprogress.spaceship.effects.Magnet;
+import com.tinyprogress.spaceship.effects.Stars;
+import com.tinyprogress.spaceship.system.Entity;
+import com.tinyprogress.spaceship.system.Input;
+import com.tinyprogress.spaceship.system.Tagger;
+import com.tinyprogress.spaceship.ui.End;
+import com.tinyprogress.spaceship.ui.Start;
+import com.tinyprogress.spaceship.ui.TargetArrow;
 import motion.Actuate;
 import motion.easing.Quad;
-import nape.constraint.DistanceJoint;
-import nape.geom.Ray;
 import nape.geom.Vec2;
-import nape.phys.Body;
-import nape.phys.BodyType;
 import nape.phys.MassMode;
-import nape.shape.Polygon;
 import nape.space.Space;
+import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
+import openfl.Lib;
+import openfl.media.Sound;
+import openfl.media.SoundChannel;
 import openfl.ui.Keyboard;
 #if debug
 import nape.util.ShapeDebug;
@@ -26,28 +36,41 @@ import nape.util.Debug;
 
 class Main extends Sprite 
 {
-	static public inline var KEYPRESS:String = "keypress";
+	static public var instance:Main;
 	
 	#if debug
 	private var debug:Debug;
 	#end
-	public var space:Space;
-	public var keys:Array<Int>;
-	public var follow:Map<Sprite,Body>;
+	public var space(default, null):Space;
+	public var entities(default, null):Array<Entity>;
+	public var canvas(default, null):Sprite;
+	
 	public var player:Ship;
-	public var enemies:Array<Ship>;
 	public var enemy_goal:Map<Ship,Wormhole>;
-	public var ships:Array<Ship>;
-	public var holes:Array<Wormhole>;
-	public var treasure:Body;
+	public var treasure:Entity;
 	public var goal:Wormhole;
-	public var treasure_sprite:Sprite;
 	public var ready:Bool;
 	public var numEnemies:Int;
+	public var playing(default, set):String;
+	private var music:SoundChannel;
+	private function set_playing(file:String) {
+		if (file == playing) return playing;
+		var sound = Assets.getMusic("music/"+file);
+		if (music != null) music.stop();
+		music = sound.play(0.0, 100000);
+		return file;
+	}
+	
+	private var pre_time:Float;
+	private var accum:Float;
+	private var stars:Stars;
+	private var speed:Float;
+	private var intro:Start;
 
 	public function new() 
 	{
 		super();
+		instance = this;
 		
 		if (stage != null) {
             init(null);
@@ -56,83 +79,145 @@ class Main extends Sprite
         }
 	}
 	
-	private function init(e:Event) {
+	private function init(e:Event) {	
+		space = new Space(Vec2.weak(0, 0));
+		stars = cast(addChild(new Stars()));
+		canvas = cast(addChild(new Sprite()));
+		entities = [];
+		Input.init(stage);
+		
+		space.worldAngularDrag = 0.0;
+		space.worldLinearDrag = 0.0;
+		
+		numEnemies = 0;
+		enemy_goal = new Map<Ship, Wormhole>();
+		
+		setup();
+		accum = 0;
+		pre_time = Lib.getTimer() / 1000;
+		playing = "Orion 300XB.wav";
+		
+		stage.focus = stage;
+		stage.addEventListener(Input.KEYPRESS, keyPress);
+		stage.addEventListener(Event.ENTER_FRAME, update);
 		#if debug
 		debug = new ShapeDebug(stage.stageWidth, stage.stageHeight, stage.color);
 		debug.drawConstraints = true;
 		debug.drawCollisionArbiters = true;
-        addChild(debug.display);
-		#end	
-		space = new Space(Vec2.weak(0, 0));
-		keys = [ for (i in 0...1024) 0 ];
-		enemies = [];
-		ships = [];
-		holes = [];
-		numEnemies = 0;
-		follow = new Map<Sprite, Body>();
-		enemy_goal = new Map<Ship, Wormhole>();
-		
-		setup();
-		
-		stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
-		stage.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-		stage.addEventListener(Main.KEYPRESS, keyPress);
-		stage.addEventListener(Event.ENTER_FRAME, update);
+        canvas.addChild(debug.display);
+		#end
 	}
 	
 	private function setup() {
-		player = new Ship("player", this);
+		ready = false;
+		
+		intro = new Start(this);
+		stage.addChild(intro);
+		speed = 4000;
+		
+		#if debug
+		trace("Game Started");
+		#end
+	}
+	
+	public function start() {
+		speed = 0;
+		stage.removeChild(intro);
+		
+		player = new Ship("player");
+		Tagger.set(player, "player");
+		
 		player.sprite.scaleX = player.sprite.scaleY = 0;
-		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(2.5);
-		
-		treasure = Util.createAsteroid(this, 60);
-		var m = treasure.mass;
-		treasure.massMode = MassMode.FIXED;
-		treasure.mass = m*6;
-		var vertices = [for (i in 0...8) {
-			var angle = (i+0.5) * ((Math.PI * 2) / 8);
-			new Vec2(Math.cos(angle) * 30, Math.sin(angle) * 30);
-		}];
-		treasure_sprite = [for(k in follow.keys()) if(follow[k]==treasure) k][0];
-		Util.buildShape(vertices, 0xDDAA11, treasure_sprite);
-		treasure.position.x = stage.stageWidth / 2;
-		treasure.position.y = stage.stageHeight / 2;
-		
-		for (i in 0...65) {
-			var asteroid = Util.createAsteroid(this,30+20*Math.random());
-			asteroid.position.x = 2000 * Math.random();
-			asteroid.position.y = -1000+2000 * Math.random();
-		}
+		Actuate.tween(player.sprite, 0.5, { scaleX:1, scaleY:1 } ).delay(1.2);
 		
 		player.body.position.x = 1700;
 		player.body.rotation = Math.PI;
 		
-		goal = new Wormhole(100, 0x282888);
-		goal.scaleX = goal.scaleY = 0;
-		var goal_b = new Body(BodyType.STATIC, Vec2.weak(2000, 0));
-		addChildAt(goal, 0);
-		goal.x = 2000;
-		holes.push(goal);
-		Actuate.tween(goal, 0.5, { scaleX:1, scaleY:1 } ).delay(2);
+		Actuate.tween(canvas, 1, { x: -player.body.position.x + stage.stageWidth / 2, y: -player.body.position.y + stage.stageHeight / 2 } ).onComplete(player.updates.push, [
+			function(entity:Entity, dt:Float) {
+				if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
+				
+				player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
+				
+				if (Input.keys[Keyboard.H] == 1 && player.grapplers.length > 1) {
+					var bodies = [for (grapple in player.grapplers) if(grapple.weld != null) grapple.weld.body2];
+					var center = Vec2.weak();
+					for (body in bodies) center = center.add(body.position, true);
+					center = center.mul(1 / bodies.length);
+					
+					for (body in bodies) {
+						var dir = center.sub(body.position);
+						if (dir.length == 0) continue;
+						body.applyImpulse(dir.normalise().mul(30, true));
+						
+						var ent = Entity.bodies.get(body);
+						if (Magnet.targets.indexOf(ent) < 0) {
+							new Magnet(ent);
+						}
+					}
+				} else {
+					for (magnet in Tagger.get("magnet")) {
+						magnet.dispose();
+					}
+				}
+				
+				var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
+				if (pull != 0) {
+					for (grapple in player.grapplers) {
+						if(grapple.distance != null)
+							grapple.distance.jointMax = Math.max(grapple.distance.jointMax+pull,0);
+					}
+				}
+				
+				canvas.x = -player.body.position.x + stage.stageWidth / 2;
+				canvas.y = -player.body.position.y + stage.stageHeight / 2; 
+				
+				/*var close:Bool = false;
+				for (enemy in Tagger.get("enemy")) {
+					if (Vec2.distance(player.body.position, enemy.body.position) < stage.stageWidth) {
+						close = true;
+						break;
+					}
+				}
+				playing = close?"Cupids Revenge.wav":"Infinite Perspective.wav";*/
+			}
+		]);
 		
-		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure));
-		stage.addChild(new TargetArrow(0x282888, player.body, goal_b));
+		for (i in 0...85) {
+			var asteroid = new Asteroid(30+20*Math.random());
+			asteroid.x = 2000 * Math.random();
+			asteroid.y = -1000 + 2000 * Math.random();
+		}
 		
-		var intro = new End("WATCH OUT FOR PIRATES", false);
-		stage.addChild(intro);
-		intro.y = -stage.stageHeight;
-		Actuate.tween(intro, 0.5, { y:stage.stageHeight/2 } ).ease(Quad.easeOut).onComplete(function(intro:End) {			
-			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(12).reflect().onComplete(function(intro:End) {				
-				Actuate.tween(intro, 0.5, { y:-stage.stageHeight } ).ease(Quad.easeIn).onComplete(stage.removeChild, [intro]);
-			}, [intro]);
-		}, [intro]);
+		treasure = new Asteroid(70);
+		Tagger.set(treasure, "treasure");
+		var m = treasure.body.mass;
+		treasure.body.massMode = MassMode.FIXED;
+		treasure.body.mass = m*6;
+		var vertices = [for (i in 0...8) {
+			var angle = (i+0.5) * ((Math.PI * 2) / 8);
+			new Vec2(Math.cos(angle) * 30, Math.sin(angle) * 30);
+		}];
+		treasure.sprite.graphics.beginFill(0xDDAA11);
+		treasure.sprite.graphics.moveTo(vertices[vertices.length - 1].x, vertices[vertices.length - 1].y);
+		for (vertex in vertices) {
+			treasure.sprite.graphics.lineTo(vertex.x, vertex.y);
+		}
+		treasure.sprite.graphics.endFill();
+		
+		goal = new Wormhole(100, 0x282888, Vec2.weak(2000, 0));
+		Tagger.set(goal, "goal");
+		goal.updates.push(updatewormhole);
+		
+		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
+		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));
 	}
 	
 	private function destroy():Void {
-		stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDown);
-		stage.removeEventListener(KeyboardEvent.KEY_UP, keyUp);
-		stage.removeEventListener(Main.KEYPRESS, keyPress);
+		stage.removeEventListener(Input.KEYPRESS, keyPress);
 		stage.removeEventListener(Event.ENTER_FRAME, update);
+		
+		for (entity in entities) entity.dispose();
 		
 		space.clear();
 		
@@ -144,138 +229,72 @@ class Main extends Sprite
 		init(null);
 	}
 	
-	private function keyUp(e:KeyboardEvent):Void 
-	{
-		keys[e.keyCode] = 0;
-	}
-	
-	private function keyDown(e:KeyboardEvent):Void 
-	{
-		if (keys[e.keyCode] == 0) 
-			dispatchEvent(new KeyboardEvent(Main.KEYPRESS, true, true, 
-			e.charCode, e.keyCode, e.keyLocation, e.ctrlKey, 
-			e.altKey, e.shiftKey, e.controlKey, e.commandKey));
-		keys[e.keyCode] = 1;
-	}
-	
-	private function keyPress(e:KeyboardEvent):Void 
-	{
+	private function keyPress(e:KeyboardEvent):Void {
 		if (e.keyCode == Keyboard.R) reset();
 		if (e.keyCode == Keyboard.L) player.release();
 		if (e.keyCode == Keyboard.J) player.shoot();
+		if (e.keyCode == Keyboard.M) {
+			for (s in Tagger.get("enemy")) cast(s,Ship).release();
+			for (s in Tagger.get("player")) cast(s,Ship).release();
+		}
 	}
 	
-	private function update(e:Event):Void 
-	{
+	private function update(e:Event):Void {
+		var cur_time:Float = Lib.getTimer() / 1000;
+		var dt = cur_time - pre_time;
+		pre_time = cur_time;
+		accum += dt;
+		
 		var stage_center = new Vec2(stage.stageWidth / 2, stage.stageHeight / 2);
-        space.step(1 / stage.frameRate);
 		
-		for (ship in ships) {
-			ship.update(1 / stage.frameRate, this);
-		}
-		
-		for (key in follow.keys()) {
-			var sprite = key;
-			var body = follow[key];
-			follow[key].applyImpulse(follow[key].velocity.mul(-0.01, true));
-			follow[key].applyAngularImpulse(follow[key].angularVel * -4.1);
-			
-			key.visible = body.position.sub(stage_center.sub(Vec2.weak(x,y),true),true).length < stage.stageWidth;
-			if(key.visible){
-				key.x = follow[key].position.x;
-				key.y = follow[key].position.y;
-				key.rotation = follow[key].rotation * (180 / Math.PI);
-			} else { 
-				if(sprite.name == "Asteroid")
-					body.velocity.set(Vec2.weak());
+		while (accum >= 1 / stage.frameRate) {
+			accum -= 1 / stage.frameRate;
+			space.step(1 / stage.frameRate);
+			for (entity in entities) {
+				entity.update(1 / stage.frameRate);
+				entity.sprite.visible = stage_center.add(Vec2.weak(-canvas.x, -canvas.y), true).sub(entity.body.position, true).length < stage.stageWidth;
 			}
 		}
 		
-		for (enemy in enemies) {
-			var d = new Vec2(enemy.body.position.x - treasure.position.x, enemy.body.position.y - treasure.position.y);
-			var t = new Vec2(enemy.body.position.x - enemy_goal[enemy].x, enemy.body.position.y - enemy_goal[enemy].y);
-			var angle = switch(enemy.attached.indexOf(treasure) < 0) {
-			case true:
-				enemy.body.rotation - Math.atan2(d.y, d.x);
-			case false:
-				enemy.body.rotation - Math.atan2(t.y, t.x);
-			}
-			while (angle < -Math.PI) angle += Math.PI * 2;
-			while (angle >  Math.PI) angle -= Math.PI * 2;
-			
-			var on_track = Math.PI / 2 - Math.abs(angle) < Math.PI / 8;
-			enemy.move(angle, on_track ? 1 : 0);
-			if(on_track)
-				enemy.body.applyAngularImpulse(enemy.body.angularVel * 10 * (Math.PI / 8 - Math.abs(angle)));
-			if (enemy.attached.indexOf(treasure) < 0 && d.length < 200 && enemy.target() == treasure) {
-				enemy.shoot();
-			}
-		}
-		
-		if (numEnemies < 3 && ready) {
-			numEnemies += 5;
-			Actuate.timer(10).onComplete(function() { Util.spawnWave(this, 4); }, []);
-		}
-		
-		for (hole in holes) {
-			var reach = 200;
-			var d = new Vec2(hole.x - treasure.position.x, hole.y - treasure.position.y);
-			var distance = d.length - reach;
-			if (d.length < reach) {
-				treasure.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.velocity.mul(0.6, true),true));
-				if (d.length < 10) {
-					removeChild(hole);
-					holes.remove(hole);
-					
-					for (s in ships) s.release();
-					treasure.space = null;
-					follow.remove(treasure_sprite);
-					removeChild(treasure_sprite);
-					
-					if (hole == goal) {
-						stage.addChild(new End("GREAT PROFIT", true));
-					} else {
-						stage.addChild(new End("GREAT LOSS", true));
-					}
-					
-					ready = false;
-				}
-			}
-		}
-		
-		if (player.body.space != null) {
-			if (!ready && player.attached.indexOf(treasure) >= 0) ready = true;
-			
-			player.move((keys[Keyboard.D] - keys[Keyboard.A]), (keys[Keyboard.W] - keys[Keyboard.S]));
-			
-			if (keys[Keyboard.H] == 1 && player.grapples.length > 1) {
-				var bodies = [for (grapple in player.grapples) grapple.body2];
-				var center = Vec2.weak();
-				for (body in bodies) center = center.add(body.position, true);
-				center = center.mul(1 / bodies.length);
-				
-				for (body in bodies) {
-					var dir = center.sub(body.position);
-					if (dir.length == 0) continue;
-					body.applyImpulse(dir.normalise().mul(30, true));
-				}
-			}
-			
-			var pull = (keys[Keyboard.I] - keys[Keyboard.K]) * 1.1;
-			if (pull != 0) {
-				for (c in player.grapples) {
-					c.jointMax = Math.max(c.jointMax+pull,0);
-				}
-			}
-			
-			x = -player.body.position.x + stage.stageWidth / 2;
-			y = -player.body.position.y + stage.stageHeight / 2;
-		}
+		canvas.x += dt * speed;
+		stars.update( -canvas.x, -canvas.y);
 		
 		#if debug
         debug.clear();
         debug.draw(space);
         debug.flush();
 		#end
+		
+		// Everything below this line should be moved
+		
+		if (numEnemies < 3 && ready) {
+			numEnemies += 5;
+			Actuate.timer(10).onComplete(function() { Util.spawnWave(this, 4); }, []);
+		}
+	}
+	
+	public function updatewormhole(entity:Entity, dt:Float) {
+		var hole = cast(entity, Wormhole);
+		var reach = 200;
+		var d = new Vec2(hole.x - treasure.x, hole.y - treasure.y);
+		var distance = d.length - reach;
+		if (d.length < reach) {
+			treasure.body.applyImpulse(d.mul(2*((reach-d.length)/reach), true).sub(treasure.body.velocity.mul(0.6, true),true));
+			if (d.length < 10) {
+				hole.dispose();
+				
+				for (s in Tagger.get("enemy")) cast(s,Ship).release();
+				for (s in Tagger.get("player")) cast(s,Ship).release();
+				treasure.dispose();
+				
+				if (hole == goal) {
+					stage.addChild(new End("GREAT PROFIT", true));
+				} else {
+					stage.addChild(new End("GREAT LOSS", true));
+				}
+				
+				ready = false;
+			}
+		}
 	}
 }
