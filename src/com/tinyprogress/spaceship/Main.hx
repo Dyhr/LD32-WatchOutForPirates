@@ -171,6 +171,15 @@ class Main extends Sprite
 				
 				canvas.x = -player.body.position.x + stage.stageWidth / 2;
 				canvas.y = -player.body.position.y + stage.stageHeight / 2; 
+				
+				/*var close:Bool = false;
+				for (enemy in Tagger.get("enemy")) {
+					if (Vec2.distance(player.body.position, enemy.body.position) < stage.stageWidth) {
+						close = true;
+						break;
+					}
+				}
+				playing = close?"Cupids Revenge.wav":"Infinite Perspective.wav";*/
 			}
 		]);
 		
