@@ -5,8 +5,8 @@ player:
     nwid: 3
     length: 40
   force:
-    forward: 9
-    turn: 20
+    forward: 2
+    turn: 10
   grapples: 8
   death: 100000
 enemy_1: 
@@ -16,7 +16,7 @@ enemy_1:
     nwid: 5
     length: 60
   force:
-    forward: 5
-    turn: 10
+    forward: 1
+    turn: 100
   grapples: 1
   death: 8000

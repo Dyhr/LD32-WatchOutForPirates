@@ -91,10 +91,11 @@ class Ship extends Entity
 	}
 	
 	public override function dispose() {
-		release();
 		for (grapple in grapplers) {
-			grapplers.remove(grapple);
 			grapple.dispose();
+		}
+		while (grapplers.length > 0) {
+			grapplers.pop();
 		}
 		super.dispose();
 	}

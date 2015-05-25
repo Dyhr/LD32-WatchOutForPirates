@@ -19,7 +19,7 @@
     <class path="C:\Users\Rasmus\lime\openfl\3,0,6" />
     <class path="C:\Users\Rasmus\lime\lime\2,4,1" />
     <class path="C:\Users\Rasmus\lime\actuate\1,8,5" />
-    <class path="C:\Users\Rasmus\lime\nape\2,0,16" />
+    <class path="C:\Users\Rasmus\lime\nape\2,0,17" />
     <class path="C:\Users\Rasmus\lime\yaml\1,2,1" />
     <class path="C:\Users\Rasmus\lime\svg\1,0,8" />
     <class path="src" />
@@ -27,7 +27,7 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="openfl=3.0.6&#xA;lime=2.4.1&#xA;actuate=1.8.5&#xA;nape=2.0.16&#xA;yaml=1.2.1&#xA;svg=1.0.8&#xA;openfl-next&#xA;tools=2.4.1&#xA;no-compilation&#xA;native&#xA;lime-native&#xA;openfl-native&#xA;windows&#xA;desktop" />
+    <option directives="openfl=3.0.6&#xA;lime=2.4.1&#xA;actuate=1.8.5&#xA;nape=2.0.17&#xA;yaml=1.2.1&#xA;svg=1.0.8&#xA;openfl-next&#xA;tools=2.4.1&#xA;no-compilation&#xA;native&#xA;lime-native&#xA;openfl-native&#xA;windows&#xA;desktop" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />

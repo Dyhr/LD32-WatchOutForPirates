@@ -16,6 +16,7 @@ import openfl.display.Sprite;
 class Entity
 {
 	public static var cb:CbType = new CbType();
+	public static var bodies:Map<Body,Entity> = new Map<Body,Entity>();
 	
 	public var parent(default, null):DisplayObjectContainer;
 	public var space(default, null):Space;
@@ -44,6 +45,7 @@ class Entity
 		body = new Body(bodytype, pos);
 		space.bodies.add(body);
 		body.cbTypes.add(cb);
+		bodies.set(body, this);
 		if (!background) sprite = cast(parent.addChild(new Sprite()));
 		else sprite = cast(parent.addChildAt(new Sprite(), 0));
 	}
@@ -63,6 +65,7 @@ class Entity
 		body.cbTypes.remove(cb);
 		space.bodies.remove(body);
 		parent.removeChild(sprite);
+		bodies.remove(body);
 		Tagger.unset(this);
 	}
 	public function update(dt:Float) {

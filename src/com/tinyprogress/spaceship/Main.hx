@@ -3,21 +3,26 @@ package com.tinyprogress.spaceship;
 import com.tinyprogress.spaceship.actors.Asteroid;
 import com.tinyprogress.spaceship.actors.Ship;
 import com.tinyprogress.spaceship.actors.Wormhole;
+import com.tinyprogress.spaceship.effects.Magnet;
 import com.tinyprogress.spaceship.effects.Stars;
 import com.tinyprogress.spaceship.system.Entity;
 import com.tinyprogress.spaceship.system.Input;
 import com.tinyprogress.spaceship.system.Tagger;
 import com.tinyprogress.spaceship.ui.End;
+import com.tinyprogress.spaceship.ui.Start;
 import com.tinyprogress.spaceship.ui.TargetArrow;
 import motion.Actuate;
 import motion.easing.Quad;
 import nape.geom.Vec2;
 import nape.phys.MassMode;
 import nape.space.Space;
+import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 import openfl.Lib;
+import openfl.media.Sound;
+import openfl.media.SoundChannel;
 import openfl.ui.Keyboard;
 #if debug
 import nape.util.ShapeDebug;
@@ -46,10 +51,21 @@ class Main extends Sprite
 	public var goal:Wormhole;
 	public var ready:Bool;
 	public var numEnemies:Int;
+	public var playing(default, set):String;
+	private var music:SoundChannel;
+	private function set_playing(file:String) {
+		if (file == playing) return playing;
+		var sound = Assets.getMusic("music/"+file);
+		if (music != null) music.stop();
+		music = sound.play(0.0, 100000);
+		return file;
+	}
 	
 	private var pre_time:Float;
 	private var accum:Float;
 	private var stars:Stars;
+	private var speed:Float;
+	private var intro:Start;
 
 	public function new() 
 	{
@@ -78,7 +94,8 @@ class Main extends Sprite
 		
 		setup();
 		accum = 0;
-		pre_time = Lib.getTimer()/1000;
+		pre_time = Lib.getTimer() / 1000;
+		playing = "Orion 300XB.wav";
 		
 		stage.focus = stage;
 		stage.addEventListener(Input.KEYPRESS, keyPress);
@@ -93,6 +110,20 @@ class Main extends Sprite
 	
 	private function setup() {
 		ready = false;
+		
+		intro = new Start(this);
+		stage.addChild(intro);
+		speed = 4000;
+		
+		#if debug
+		trace("Game Started");
+		#end
+	}
+	
+	public function start() {
+		speed = 0;
+		stage.removeChild(intro);
+		
 		player = new Ship("player");
 		Tagger.set(player, "player");
 		
@@ -102,35 +133,55 @@ class Main extends Sprite
 		player.body.position.x = 1700;
 		player.body.rotation = Math.PI;
 		
-		player.updates.push(function(entity:Entity, dt:Float) {
-			if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
-			
-			player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
-			
-			if (Input.keys[Keyboard.H] == 1 && player.grapplers.length > 1) {
-				var bodies = [for (grapple in player.grapplers) if(grapple.weld != null) grapple.weld.body2];
-				var center = Vec2.weak();
-				for (body in bodies) center = center.add(body.position, true);
-				center = center.mul(1 / bodies.length);
+		Actuate.tween(canvas, 1, { x: -player.body.position.x + stage.stageWidth / 2, y: -player.body.position.y + stage.stageHeight / 2 } ).onComplete(player.updates.push, [
+			function(entity:Entity, dt:Float) {
+				if (!ready && player.attached.indexOf(treasure.body) >= 0) ready = true;
 				
-				for (body in bodies) {
-					var dir = center.sub(body.position);
-					if (dir.length == 0) continue;
-					body.applyImpulse(dir.normalise().mul(30, true));
+				player.move((Input.keys[Keyboard.D] - Input.keys[Keyboard.A]), (Input.keys[Keyboard.W] - Input.keys[Keyboard.S]));
+				
+				if (Input.keys[Keyboard.H] == 1 && player.grapplers.length > 1) {
+					var bodies = [for (grapple in player.grapplers) if(grapple.weld != null) grapple.weld.body2];
+					var center = Vec2.weak();
+					for (body in bodies) center = center.add(body.position, true);
+					center = center.mul(1 / bodies.length);
+					
+					for (body in bodies) {
+						var dir = center.sub(body.position);
+						if (dir.length == 0) continue;
+						body.applyImpulse(dir.normalise().mul(30, true));
+						
+						var ent = Entity.bodies.get(body);
+						if (Magnet.targets.indexOf(ent) < 0) {
+							new Magnet(ent);
+						}
+					}
+				} else {
+					for (magnet in Tagger.get("magnet")) {
+						magnet.dispose();
+					}
 				}
-			}
-			
-			var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
-			if (pull != 0) {
-				for (grapple in player.grapplers) {
-					if(grapple.distance != null)
-						grapple.distance.jointMax = Math.max(grapple.distance.jointMax+pull,0);
+				
+				var pull = (Input.keys[Keyboard.I] - Input.keys[Keyboard.K]) * 1.1;
+				if (pull != 0) {
+					for (grapple in player.grapplers) {
+						if(grapple.distance != null)
+							grapple.distance.jointMax = Math.max(grapple.distance.jointMax+pull,0);
+					}
 				}
+				
+				canvas.x = -player.body.position.x + stage.stageWidth / 2;
+				canvas.y = -player.body.position.y + stage.stageHeight / 2; 
+				
+				/*var close:Bool = false;
+				for (enemy in Tagger.get("enemy")) {
+					if (Vec2.distance(player.body.position, enemy.body.position) < stage.stageWidth) {
+						close = true;
+						break;
+					}
+				}
+				playing = close?"Cupids Revenge.wav":"Infinite Perspective.wav";*/
 			}
-			
-			canvas.x = -player.body.position.x + stage.stageWidth / 2;
-			canvas.y = -player.body.position.y + stage.stageHeight / 2;
-		});
+		]);
 		
 		for (i in 0...85) {
 			var asteroid = new Asteroid(30+20*Math.random());
@@ -160,19 +211,6 @@ class Main extends Sprite
 		
 		stage.addChild(new TargetArrow(0xDDAA11, player.body, treasure.body));
 		stage.addChild(new TargetArrow(0x282888, player.body, goal.body));
-		
-		var intro = new End("WATCH OUT FOR PIRATES", false);
-		stage.addChild(intro);
-		intro.y = -stage.stageHeight;
-		Actuate.tween(intro, 0.5, { y:stage.stageHeight/2 } ).ease(Quad.easeOut).onComplete(function(intro:End) {			
-			Actuate.tween(intro, 1, { scaleX:0.9, scaleY:0.9 } ).ease(Quad.easeInOut).repeat(8).reflect().onComplete(function(intro:End) {				
-				Actuate.tween(intro, 0.5, { y:-stage.stageHeight } ).ease(Quad.easeIn).onComplete(stage.removeChild, [intro]);
-			}, [intro]);
-		}, [intro]);
-		
-		#if debug
-		trace("Game Started");
-		#end
 	}
 	
 	private function destroy():Void {
@@ -191,8 +229,7 @@ class Main extends Sprite
 		init(null);
 	}
 	
-	private function keyPress(e:KeyboardEvent):Void 
-	{
+	private function keyPress(e:KeyboardEvent):Void {
 		if (e.keyCode == Keyboard.R) reset();
 		if (e.keyCode == Keyboard.L) player.release();
 		if (e.keyCode == Keyboard.J) player.shoot();
@@ -202,8 +239,7 @@ class Main extends Sprite
 		}
 	}
 	
-	private function update(e:Event):Void 
-	{
+	private function update(e:Event):Void {
 		var cur_time:Float = Lib.getTimer() / 1000;
 		var dt = cur_time - pre_time;
 		pre_time = cur_time;
@@ -220,7 +256,8 @@ class Main extends Sprite
 			}
 		}
 		
-		//stars.update( -canvas.x, -canvas.y);
+		canvas.x += dt * speed;
+		stars.update( -canvas.x, -canvas.y);
 		
 		#if debug
         debug.clear();

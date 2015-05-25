@@ -1,15 +1,23 @@
 TODO LIST
-+ Refractor classes
-+ Fix ship physics
-+ Better grappling
 - More intelligent enemy placement
 - Optimize
-- Magnetization effects
-+ Better ship definitions
 - Actual rope physics
 - Redo enemy grappling
 - Support more enemy types
 - Draw better receptacle
-+ Stars! In the background!
+- Draw better treasure
+- Fix stars! In the background! On HTML5!
 - Particles
-- Improve tagger
+- Improve tagger. // What was this?
+- Music
+- Health
+- Fix stuttering stars
+
+DONE
++ Refractor classes
++ Fix ship physics
++ Better grappling
++ Better ship definitions
++ Stars! In the background!
++ Magnetization effects
++ Menu
